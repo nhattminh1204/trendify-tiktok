@@ -1,0 +1,151 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: trendify_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: trendify
+      POSTGRES_USER: trendify
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trendify"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: trendify_redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  minio:
+    image: minio/minio:latest
+    container_name: trendify_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-changeme}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  opensearch:
+    image: opensearchproject/opensearch:2.13.0
+    container_name: trendify_opensearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD:-Admin@12345}
+      - plugins.security.disabled=true   # Dev only — enable in production
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  seq:
+    image: datalust/seq:latest
+    container_name: trendify_seq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+    volumes:
+      - seq_data:/data
+    ports:
+      - "5341:80"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trendify_api
+    restart: unless-stopped
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=trendify;Username=trendify;Password=${POSTGRES_PASSWORD:-changeme}"
+      Redis__Url: "redis:6379"
+      Redis__Password: "${REDIS_PASSWORD:-changeme}"
+      MinIO__Endpoint: "minio:9000"
+      MinIO__AccessKey: "${MINIO_ACCESS_KEY:-minioadmin}"
+      MinIO__SecretKey: "${MINIO_SECRET_KEY:-changeme}"
+      MinIO__Bucket: "trendify-assets"
+      MinIO__UseSSL: "false"
+      Seq__Url: "http://seq:80"
+      Seq__ApiKey: "${SEQ_API_KEY:-}"
+      Jwt__PrivateKeyPem: "${JWT_PRIVATE_KEY_PEM}"
+      Jwt__PublicKeyPem: "${JWT_PUBLIC_KEY_PEM}"
+      Jwt__Issuer: "trendify"
+      Jwt__Audience: "trendify-clients"
+      Encryption__Key: "${TOKEN_ENCRYPTION_KEY:-changeme-32-char-key-here}"
+      TikTok__ClientKey: "${TIKTOK_CLIENT_KEY}"
+      TikTok__ClientSecret: "${TIKTOK_CLIENT_SECRET}"
+      TikTok__RedirectUri: "${TIKTOK_REDIRECT_URI:-http://localhost:5000/api/v1/accounts/social/tiktok/callback}"
+      AI__OpenAI__ApiKey: "${OPENAI_API_KEY}"
+      AI__Anthropic__ApiKey: "${ANTHROPIC_API_KEY}"
+      AI__Gemini__ApiKey: "${GEMINI_API_KEY}"
+      Cors__AllowedOrigins__0: "${APP_URL:-http://localhost:3000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: "${API_URL:-http://localhost:5000}"
+    container_name: trendify_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  opensearch_data:
+  seq_data:
+
+networks:
+  default:
+    name: trendify_network

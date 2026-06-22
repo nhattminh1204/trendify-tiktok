@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trendify — System Discovery Document</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ground: #F8FAFC;
+      --nav-bg: #1E1B4B;
+      --nav-text: #C7D2FE;
+      --nav-active: #6366F1;
+      --accent: #4F46E5;
+      --text: #0F172A;
+      --muted: #64748B;
+      --border: #E2E8F0;
+      --surface: #FFFFFF;
+      --found-bg: #F0FDF4;
+      --found-border: #86EFAC;
+      --found-text: #15803D;
+      --missing-bg: #F8FAFC;
+      --missing-border: #CBD5E1;
+      --missing-text: #64748B;
+      --warn-bg: #FFFBEB;
+      --warn-border: #FCD34D;
+      --warn-text: #92400E;
+      --code-bg: #0F172A;
+      --code-text: #E2E8F0;
+      --nav-width: 260px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--ground);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.65;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar nav ───────────────────────────────── */
+    #nav {
+      width: var(--nav-width);
+      min-width: var(--nav-width);
+      background: var(--nav-bg);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0 40px;
+      flex-shrink: 0;
+    }
+    .nav-logo {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-logo-name {
+      font-size: 16px; font-weight: 700;
+      color: #fff; letter-spacing: -0.02em;
+    }
+    .nav-logo-sub {
+      font-size: 11px; color: #818CF8;
+      margin-top: 2px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .nav-group {
+      padding: 16px 0 0;
+    }
+    .nav-group-label {
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: rgba(199,210,254,0.4);
+      padding: 0 20px 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 20px;
+      font-size: 13px;
+      color: var(--nav-text);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .nav-item.active { color: #fff; border-left-color: var(--nav-active); background: rgba(99,102,241,0.15); }
+    .nav-item .num {
+      font-size: 11px; font-weight: 700;
+      color: rgba(199,210,254,0.5);
+      width: 20px; flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Main content ──────────────────────────────── */
+    #main {
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+    }
+
+    /* ── Doc header ────────────────────────────────── */
+    .doc-header {
+      background: var(--nav-bg);
+      padding: 36px 48px;
+      border-bottom: 3px solid var(--accent);
+    }
+    .doc-header h1 {
+      font-size: 24px; font-weight: 800;
+      color: #fff; letter-spacing: -0.03em;
+    }
+    .doc-header .meta {
+      display: flex; flex-wrap: wrap; gap: 16px;
+      margin-top: 10px;
+    }
+    .doc-header .meta-item {
+      font-size: 12px; color: #818CF8;
+    }
+    .doc-header .meta-item strong { color: #C7D2FE; }
+
+    /* ── Section ───────────────────────────────────── */
+    .section {
+      padding: 44px 48px 44px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-child { border-bottom: none; }
+    .section-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .section-num {
+      font-size: 11px; font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      background: #EEF2FF;
+      padding: 4px 10px; border-radius: 4px;
+      white-space: nowrap;
+    }
+    .section h2 {
+      font-size: 20px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.02em;
+    }
+
+    /* ── Sub-sections ──────────────────────────────── */
+    h3 {
+      font-size: 14px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.01em;
+      margin: 24px 0 10px;
+      padding-left: 10px;
+      border-left: 3px solid var(--accent);
+    }
+    h4 {
+      font-size: 11px; font-weight: 600;
+      color: var(--muted);
+      margin: 16px 0 8px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    p { margin-bottom: 8px; color: #334155; font-size: 14px; }
+
+    /* ── Callout boxes ─────────────────────────────── */
+    .callout {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      border: 1px solid;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .callout-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .callout.found { background: var(--found-bg); border-color: var(--found-border); color: var(--found-text); }
+    .callout.found .callout-label { color: #166534; }
+    .callout.missing { background: var(--missing-bg); border-color: var(--missing-border); color: var(--missing-text); }
+    .callout.missing .callout-label { color: #475569; }
+    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+    .callout.warn .callout-label { color: #92400E; }
+    .callout.info { background: #EFF6FF; border-color: #BFDBFE; color: #1E40AF; }
+    .callout.info .callout-label { color: #1E3A8A; }
+
+    /* ── Tables ────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 12px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #F1F5F9;
+      font-weight: 600; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: top;
+      color: #334155;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #FAFAFE; }
+    td code { font-family: 'Cascadia Code','Fira Code','Consolas',monospace; font-size: 11px; background: #F1F5F9; padding: 1px 5px; border-radius: 3px; color: #1E40AF; }
+    td.found-cell { color: var(--found-text); font-weight: 600; }
+    td.miss-cell { color: var(--missing-text); }
+
+    /* ── Code blocks ───────────────────────────────── */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: 'Cascadia Code','Fira Code','Consolas',monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 16px 18px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 10px 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    code {
+      font-family: 'Cascadia Code','Fira Code','Consolas',monospace;
+      font-size: 12px;
+      background: #F1F5F9;
+      padding: 1px 5px; border-radius: 3px;
+      color: #1E40AF;
+    }
+    pre code { background: none; color: inherit; padding: 0; border-radius: 0; }
+
+    /* ── Flow boxes ────────────────────────────────── */
+    .flow-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      font-family: 'Cascadia Code','Fira Code','Consolas',monospace;
+      font-size: 12px;
+      line-height: 1.9;
+      color: #334155;
+      white-space: pre-wrap;
+    }
+    .flow-box .step { color: var(--accent); font-weight: 600; }
+    .flow-box .arrow { color: var(--muted); }
+    .flow-box .result { color: #059669; font-weight: 600; }
+    .flow-box .note { color: var(--muted); font-style: italic; font-family: inherit; }
+    .flow-box .job { color: #D97706; font-weight: 600; }
+
+    /* ── Checklist ─────────────────────────────────── */
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .checklist li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #F8FAFC; }
+    .checklist li:last-child { border-bottom: none; }
+    .check-icon { flex-shrink: 0; width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-top: 1px; }
+    .check-yes { background: #DCFCE7; color: #16A34A; }
+    .check-no  { background: #FEE2E2; color: #DC2626; }
+    .check-partial { background: #FEF3C7; color: #D97706; }
+    .check-text { color: #334155; line-height: 1.4; }
+    .check-note { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+
+    /* ── Badges ────────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 9999px;
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .badge-green  { background: #DCFCE7; color: #15803D; }
+    .badge-red    { background: #FEE2E2; color: #B91C1C; }
+    .badge-yellow { background: #FEF9C3; color: #92400E; }
+    .badge-blue   { background: #DBEAFE; color: #1D4ED8; }
+    .badge-gray   { background: #F1F5F9; color: #475569; }
+    .badge-violet { background: #EDE9FE; color: #6D28D9; }
+
+    /* ── Module cards grid ─────────────────────────── */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 12px 0; }
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      border-top: 3px solid var(--accent);
+    }
+    .module-card h4 { margin: 0 0 6px; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); }
+    .module-card p { font-size: 12px; color: var(--muted); margin: 0; }
+
+    /* ── Two-col ───────────────────────────────────── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Inline pill ────────────────────────────────── */
+    .pill { display: inline-flex; align-items: center; background: #EEF2FF; color: var(--accent); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin: 2px; font-family: 'Cascadia Code','Fira Code','Consolas',monospace; }
+
+    ul, ol { padding-left: 20px; margin: 8px 0; }
+    li { margin: 4px 0; font-size: 13px; color: #334155; }
+
+    /* ── Active nav highlight ──────────────────────── */
+    .nav-item.active { color: #fff; border-left-color: var(--nav-active); background: rgba(99,102,241,0.15); }
+  </style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+<!-- SIDEBAR NAVIGATION -->
+<!-- ================================================================ -->
+<nav id="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-name">Trendify</div>
+    <div class="nav-logo-sub">System Discovery Document</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Sections</div>
+    <a class="nav-item" href="#s1"><span class="num">01</span>Tổng quan sản phẩm</a>
+    <a class="nav-item" href="#s2"><span class="num">02</span>User Roles</a>
+    <a class="nav-item" href="#s3"><span class="num">03</span>User Journey</a>
+    <a class="nav-item" href="#s4"><span class="num">04</span>Screen Inventory</a>
+    <a class="nav-item" href="#s5"><span class="num">05</span>Feature Inventory</a>
+    <a class="nav-item" href="#s6"><span class="num">06</span>User Flow</a>
+    <a class="nav-item" href="#s7"><span class="num">07</span>System Flow</a>
+    <a class="nav-item" href="#s8"><span class="num">08</span>Automation Flow</a>
+    <a class="nav-item" href="#s9"><span class="num">09</span>Background Jobs</a>
+    <a class="nav-item" href="#s10"><span class="num">10</span>Database Domain</a>
+    <a class="nav-item" href="#s11"><span class="num">11</span>API Overview</a>
+    <a class="nav-item" href="#s12"><span class="num">12</span>Event &amp; Workflow Map</a>
+    <a class="nav-item" href="#s13"><span class="num">13</span>Capabilities Checklist</a>
+    <a class="nav-item" href="#s14"><span class="num">14</span>End-to-End Workflow</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Metadata</div>
+    <a class="nav-item" href="#s1"><span class="num">🏗</span>.NET 9 + Next.js 15</a>
+    <a class="nav-item" href="#s10"><span class="num">🗄</span>PostgreSQL · Redis</a>
+    <a class="nav-item" href="#s9"><span class="num">⚙</span>4 Hangfire Jobs</a>
+    <a class="nav-item" href="#s11"><span class="num">🔌</span>60+ API Endpoints</a>
+    <a class="nav-item" href="#s4"><span class="num">📱</span>23 Screens</a>
+  </div>
+</nav>
+
+<!-- ================================================================ -->
+<!-- MAIN CONTENT -->
+<!-- ================================================================ -->
+<main id="main">
+
+  <!-- DOC HEADER -->
+  <div class="doc-header">
+    <h1>Trendify — System Discovery Document</h1>
+    <div class="meta">
+      <span class="meta-item"><strong>Mục đích:</strong> Mô tả chính xác hệ thống hiện tại</span>
+      <span class="meta-item"><strong>Phương pháp:</strong> Đọc trực tiếp toàn bộ codebase</span>
+      <span class="meta-item"><strong>Ngày phân tích:</strong> 2026-06-22</span>
+      <span class="meta-item"><strong>Nguồn:</strong> Source code + Docs + DB Schema + API Map</span>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 1 — TỔNG QUAN SẢN PHẨM -->
+  <!-- ============================================================== -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <span class="section-num">Phần 01</span>
+      <h2>Tổng quan sản phẩm</h2>
+    </div>
+
+    <h3>Hệ thống này dùng để làm gì</h3>
+    <p><strong>Trendify</strong> là một AI-Powered Creator Operating System (được ghi trong <code>docs/system-overview.md</code>). Mục đích: giúp TikTok content creator tìm xu hướng, hiểu khán giả, tạo nội dung bằng AI, và theo dõi hiệu quả — tất cả trong một workspace.</p>
+
+    <div class="callout info">
+      <div class="callout-label">Tên chính thức trong docs/system-overview.md</div>
+      "Trendify is an AI-Powered Creator Operating System that helps TikTok content creators discover trends, understand their audience, create AI-assisted content, and track performance — all in one platform."
+    </div>
+
+    <h3>7 Module chính</h3>
+    <div class="cards-grid">
+      <div class="module-card">
+        <h4>Accounts</h4>
+        <p>User, workspace, TikTok OAuth, account groups</p>
+      </div>
+      <div class="module-card">
+        <h4>Trend Intelligence</h4>
+        <p>Phát hiện trend, tính điểm, theo dõi lifecycle</p>
+      </div>
+      <div class="module-card">
+        <h4>Audience Intelligence</h4>
+        <p>Phân tích demographics, tạo persona bằng AI</p>
+      </div>
+      <div class="module-card">
+        <h4>Content Brain</h4>
+        <p>Tạo ý tưởng, hook, script bằng AI</p>
+      </div>
+      <div class="module-card">
+        <h4>Content Factory</h4>
+        <p>Pipeline tạo nội dung: voiceover, subtitle, assets</p>
+      </div>
+      <div class="module-card">
+        <h4>Analytics</h4>
+        <p>Metrics bài đăng, doanh thu, benchmarking</p>
+      </div>
+      <div class="module-card">
+        <h4>Learning Engine</h4>
+        <p>Phát hiện pattern, gợi ý cải thiện</p>
+      </div>
+    </div>
+    <p style="margin-top:12px;">Ngoài ra còn có module <strong>AI Engine</strong> (hạ tầng dùng chung cho tất cả modules khác để gọi AI).</p>
+
+    <h3>Mục tiêu kinh doanh (từ docs/system-overview.md)</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Phase</th><th>Mục tiêu</th><th>Trạng thái</th></tr>
+        <tr><td>Phase 1</td><td>1 user / 10 TikTok accounts, full feature set, 1 workspace</td><td><span class="badge badge-yellow">Đang triển khai</span></td></tr>
+        <tr><td>Phase 2</td><td>Multi-user workspace, team collaboration, invite members</td><td><span class="badge badge-gray">Chưa triển khai</span></td></tr>
+        <tr><td>Phase 3</td><td>Multi-workspace / Agency tier, white-label</td><td><span class="badge badge-gray">Chưa triển khai</span></td></tr>
+        <tr><td>Phase 4</td><td>Enterprise, API access, advanced attribution</td><td><span class="badge badge-gray">Chưa triển khai</span></td></tr>
+      </table>
+    </div>
+
+    <h3>Đối tượng người dùng (Phase 1)</h3>
+    <p>Từ <code>docs/system-overview.md</code>: TikTok content creator, quản lý tối đa 10 tài khoản TikTok trong một workspace. Không có thông tin chi tiết hơn về nhân khẩu học trong codebase.</p>
+
+    <div class="callout found">
+      <div class="callout-label">Tìm thấy trong codebase</div>
+      CLAUDE.md, docs/system-overview.md, docs/feature-index.md, docs/agent-context.md — tất cả đều xác nhận hệ thống này là Creator OS cho TikTok với 7 module.
+    </div>
+    <div class="callout missing">
+      <div class="callout-label">Không tìm thấy trong codebase</div>
+      Không có user research docs, không có target market segmentation, không có pricing strategy, không có competitor analysis trong codebase.
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 2 — USER ROLES -->
+  <!-- ============================================================== -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <span class="section-num">Phần 02</span>
+      <h2>User Roles</h2>
+    </div>
+
+    <h3>Role được tìm thấy trong database schema</h3>
+    <div class="callout found">
+      <div class="callout-label">Tìm thấy trong database — bảng users</div>
+      Column: <code>role VARCHAR(50) NOT NULL DEFAULT 'owner'</code> — chỉ có giá trị mặc định là <code>'owner'</code>. Không có bảng roles riêng, không có RBAC table.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Role</th><th>Nguồn</th><th>Mô tả</th><th>Quyền truy cập</th></tr>
+        <tr>
+          <td><strong>owner</strong> <span class="badge badge-blue">Active</span></td>
+          <td><code>users.role DEFAULT 'owner'</code></td>
+          <td>Người tạo workspace, hiện là role duy nhất có trong schema</td>
+          <td>Toàn quyền trên workspace của mình</td>
+        </tr>
+        <tr>
+          <td><strong>admin</strong> <span class="badge badge-yellow">Implied</span></td>
+          <td><code>ICurrentUser.Role</code> interface</td>
+          <td>Xuất hiện trong interface <code>ICurrentUser</code> (property <code>Role</code>) nhưng không có giá trị cụ thể nào được định nghĩa trong code Phase 1</td>
+          <td>Không xác định</td>
+        </tr>
+        <tr>
+          <td><strong>member</strong> <span class="badge badge-gray">Phase 2</span></td>
+          <td><code>docs/features/accounts.md</code></td>
+          <td>Team member — được đề cập trong docs Phase 2 nhưng chưa có trong schema</td>
+          <td>Chưa triển khai</td>
+        </tr>
+        <tr>
+          <td><strong>viewer</strong> <span class="badge badge-gray">Phase 2</span></td>
+          <td><code>docs/features/accounts.md</code></td>
+          <td>Read-only team access — được đề cập trong docs nhưng chưa có</td>
+          <td>Chưa triển khai</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Claims trong JWT (từ JwtService.cs)</h3>
+    <div class="callout found">
+      <div class="callout-label">Tìm thấy trong src/backend/Trendify.Infrastructure/JwtService.cs</div>
+      JWT claims: <code>user_id</code>, <code>tenant_id</code>, <code>roles[]</code>, <code>permissions[]</code> — AccessToken TTL: 15 phút, RefreshToken TTL: 7 ngày.
+    </div>
+
+    <div class="callout missing">
+      <div class="callout-label">Không tìm thấy trong codebase</div>
+      Guest role, Agency role, Enterprise role, Super Admin role — không có trong code Phase 1. Endpoint POST /accounts/users/invite được đánh dấu là Phase 2 trong API map.
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 3 — USER JOURNEY -->
+  <!-- ============================================================== -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <span class="section-num">Phần 03</span>
+      <h2>User Journey</h2>
+    </div>
+
+    <h3>Bước 1 — Đăng ký</h3>
+    <div class="flow-box"><span class="step">User nhìn thấy:</span> /register — Form gồm email, password, display name
+<span class="arrow">↓</span>
+<span class="step">User thao tác:</span> Điền form, bấm Submit
+<span class="arrow">↓</span>
+<span class="step">Hệ thống:</span> POST /api/v1/auth/register → RegisterWorkspaceHandler
+                Tạo Workspace (slug auto-generated từ display name)
+                Tạo User với role='owner', hash password
+                Trả về JWT access token + refresh token
+<span class="arrow">↓</span>
+<span class="result">Kết quả:</span> User được redirect đến /onboarding</div>
+
+    <h3>Bước 2 — Đăng nhập</h3>
+    <div class="flow-box"><span class="step">User nhìn thấy:</span> /login — Form email + password, link "Đăng ký"
+<span class="arrow">↓</span>
+<span class="step">User thao tác:</span> Điền thông tin, bấm Login
+<span class="arrow">↓</span>
+<span class="step">Hệ thống:</span> POST /api/v1/auth/login → LoginHandler
+                Verify password (bcrypt), cập nhật last_login_at
+                Tạo JWT (15 phút) + RefreshToken (7 ngày)
+                Zustand store lưu tokens vào localStorage
+<span class="arrow">↓</span>
+<span class="result">Kết quả:</span> Redirect đến /dashboard</div>
+
+    <h3>Bước 3 — Onboarding / Thiết lập ban đầu</h3>
+    <div class="flow-box"><span class="step">User nhìn thấy:</span> /onboarding — Setup wizard (4 bước)
+                Bước 1: Welcome screen
+                Bước 2: Connect TikTok account
+                Bước 3: Choose niche (8 niche cards)
+                Bước 4: Done screen với mini stats, CTA
+<span class="arrow">↓</span>
+<span class="step">User thao tác:</span> Có thể Skip toàn bộ onboarding
+<span class="arrow">↓</span>
+<span class="result">Kết quả:</span> Redirect đến /dashboard</div>
+    <div class="callout warn">
+      <div class="callout-label">Lưu ý</div>
+      Onboarding UI tồn tại tại <code>src/frontend/src/app/onboarding/page.tsx</code>. Tuy nhiên không tìm thấy backend API endpoint riêng cho onboarding state (/onboarding/complete hoặc tương tự). Onboarding có thể chỉ là frontend-only flow hiện tại.
+    </div>
+
+    <h3>Bước 4 — Kết nối tài khoản TikTok</h3>
+    <div class="flow-box"><span class="step">Entry points:</span> /onboarding Bước 2 HOẶC /settings/accounts
+<span class="arrow">↓</span>
+<span class="step">User nhìn thấy:</span> Danh sách tài khoản đã kết nối + nút "Connect new account"
+<span class="arrow">↓</span>
+<span class="step">User thao tác:</span> Bấm Connect → Redirect đến TikTok OAuth
+<span class="arrow">↓</span>
+<span class="step">Hệ thống:</span> POST /api/v1/accounts/social → ConnectTikTokHandler
+                TikTokOAuthService.cs xử lý PKCE flow
+                Lưu access_token + refresh_token (AES-256 encrypted)
+                Dispatch SocialAccountConnectedEvent
+<span class="arrow">↓</span>
+<span class="step">Callback:</span> /auth/tiktok/callback xử lý OAuth response
+<span class="arrow">↓</span>
+<span class="result">Kết quả:</span> Tài khoản xuất hiện trong /settings/accounts
+                Background job TikTokTokenRefreshJob sẽ tự refresh token mỗi 30 phút</div>
+
+    <h3>Bước 5 — Sử dụng tính năng chính</h3>
+    <div class="flow-box"><span class="step">Trend Research:</span>
+  → /dashboard/trends — Xem trend feed theo niche
+  → /dashboard/trends/[id] — Phân tích chi tiết trend
+  → Từ trend detail: "Generate content idea"
+<span class="arrow">↓</span>
+<span class="step">Content Creation:</span>
+  → /dashboard/content/generate — AI tạo script
+  → /dashboard/content/[id] — Review + approve ý tưởng (Bước 1)
+  → /dashboard/content/[id]/media — Upload video + voiceover (Bước 2)
+  → /dashboard/content/[id]/caption — Caption + hashtags (Bước 3)
+  → /dashboard/content/[id]/publish — Lên lịch + đăng (Bước 4)
+<span class="arrow">↓</span>
+<span class="step">Analytics:</span>
+  → /dashboard/analytics — Xem metrics sau khi đăng bài
+  → /dashboard/learning — Xem AI recommendations</div>
+
+    <h3>Bước 6 — Xem kết quả</h3>
+    <div class="flow-box"><span class="step">User nhìn thấy:</span> /dashboard/analytics
+  - KPIs: Views, Likes, Comments, Shares, Saves, Watch Time, Revenue
+  - Top Posts table
+  - Account-level breakdown
+  - Revenue summary
+<span class="arrow">↓</span>
+<span class="step">User nhìn thấy:</span> /dashboard/learning
+  - Winning patterns (ví dụ: "Hook dạng câu hỏi tăng retention 40%")
+  - Losing patterns
+  - Recommendations với priority (low/medium/high/critical)
+  - Nút Apply / Dismiss
+<span class="arrow">↓</span>
+<span class="step">Hệ thống background:</span> AnalyticsSyncJob chạy mỗi 3 giờ
+                         tự động pull metrics mới từ TikTok API</div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 4 — SCREEN INVENTORY -->
+  <!-- ============================================================== -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <span class="section-num">Phần 04</span>
+      <h2>Screen Inventory</h2>
+    </div>
+
+    <h3>Auth / Public Screens</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tên màn hình</th><th>Route</th><th>Thành phần chính</th><th>User Actions</th></tr>
+        <tr><td><strong>Root Redirect</strong></td><td><code>/</code></td><td>Redirect logic</td><td>Tự động redirect → /dashboard</td></tr>
+        <tr><td><strong>Login</strong></td><td><code>/login</code></td><td>Form email/password</td><td>Submit login, link đến /register</td></tr>
+        <tr><td><strong>Register</strong></td><td><code>/register</code></td><td>Form đăng ký workspace</td><td>Submit register, link đến /login</td></tr>
+        <tr><td><strong>Pricing</strong></td><td><code>/pricing</code></td><td>Plans comparison cards</td><td>Bấm vào plan → /register</td></tr>
+        <tr><td><strong>Onboarding</strong></td><td><code>/onboarding</code></td><td>4-step wizard</td><td>Next, Skip, Connect TikTok</td></tr>
+        <tr><td><strong>TikTok OAuth Callback</strong></td><td><code>/auth/tiktok/callback</code></td><td>OAuth handler</td><td>Auto-process callback</td></tr>
+      </table>
+    </div>
+
+    <h3>Dashboard Screens (Protected — require auth)</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tên màn hình</th><th>Route</th><th>Thành phần chính</th><th>User Actions</th></tr>
+        <tr><td><strong>Dashboard Overview</strong></td><td><code>/dashboard</code></td><td>Quick stats (1,240 trends, 8 ideas, 124.5K followers, 25% AI budget), AI Budget bar, Trending Now card grid</td><td>Click trend card → /dashboard/trends/[id]</td></tr>
+        <tr><td><strong>Trends List</strong></td><td><code>/dashboard/trends</code></td><td>Niche filter pills, Sort dropdown, Status filter (Rising/Peaked/Declining), Trend cards với score bars</td><td>Filter niche, sort, click card → detail</td></tr>
+        <tr><td><strong>Trend Detail</strong></td><td><code>/dashboard/trends/[id]</code></td><td>Trend lifecycle, score history, competitor data</td><td>Add to watchlist, Generate content idea</td></tr>
+        <tr><td><strong>Content List</strong></td><td><code>/dashboard/content</code></td><td>Tabs (All/Draft/Approved/Scheduled/Published/Archived), Niche filter, Idea cards</td><td>New Idea, AI Generate Ideas, click card → detail</td></tr>
+        <tr><td><strong>AI Script Generator</strong></td><td><code>/dashboard/content/generate</code></td><td>Left: Brief form (topic, format, tone, audience, hashtags, CTA). Right: Generated script preview</td><td>Generate, Regenerate, Copy all, "Lưu &amp; Bắt đầu tạo" → /media</td></tr>
+        <tr><td><strong>Content Detail (Step 1)</strong></td><td><code>/dashboard/content/[id]</code></td><td>ContentPipelineStepper, Hook card, Script Outline, Hashtags, AI Suggestions sidebar</td><td>Edit fields, Approve, Archive, → /media, → /publish (shortcut)</td></tr>
+        <tr><td><strong>Media (Step 2)</strong></td><td><code>/dashboard/content/[id]/media</code></td><td>Drag-drop video upload, AI voiceover (voice selector + speed), Background music (5 tracks + volume)</td><td>Upload video, Generate voiceover, Preview audio, → /caption</td></tr>
+        <tr><td><strong>Caption (Step 3)</strong></td><td><code>/dashboard/content/[id]/caption</code></td><td>Caption textarea (2200 char), Hashtag manager (add/remove/suggest, max 30), TikTok settings toggles, Cover thumbnail picker</td><td>Edit caption, Add/remove hashtags, Toggle comments/duet/stitch/download, → /publish</td></tr>
+        <tr><td><strong>Publish (Step 4)</strong></td><td><code>/dashboard/content/[id]/publish</code></td><td>Account selector, AI best-time grid (day/time/reach score bars), Custom date-time picker, TikTok preview mock, Publish summary</td><td>Select account, Select time slot, Custom schedule, "Lên lịch" OR "Đăng ngay"</td></tr>
+        <tr><td><strong>Content Calendar</strong></td><td><code>/dashboard/content/calendar</code></td><td>Month/week calendar view, Scheduled posts</td><td>View schedule, Drag-to-reschedule (UI only)</td></tr>
+        <tr><td><strong>Audience</strong></td><td><code>/dashboard/audience</code></td><td>Audience profiles per account, Persona cards (AI-generated), Demographics breakdown, Niche discovery</td><td>Generate personas, View audience detail</td></tr>
+        <tr><td><strong>Analytics</strong></td><td><code>/dashboard/analytics</code></td><td>KPI summary, Posts with metrics, Account-level analytics, Revenue tracking</td><td>Export report, Filter by account/period</td></tr>
+        <tr><td><strong>Learning Engine</strong></td><td><code>/dashboard/learning</code></td><td>Winning patterns list, Losing patterns list, Recommendations with priority</td><td>Apply recommendation, Dismiss, Trigger analysis</td></tr>
+        <tr><td><strong>AI Engine</strong></td><td><code>/dashboard/ai</code></td><td>Provider status (OpenAI/Anthropic/Gemini + latency + call counts), AI Budget widget, Usage logs table</td><td>View provider health, Browse usage logs, Monitor budget</td></tr>
+      </table>
+    </div>
+
+    <h3>Settings Screens</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tên màn hình</th><th>Route</th><th>Thành phần chính</th><th>User Actions</th></tr>
+        <tr><td><strong>Account Settings</strong></td><td><code>/settings/account</code></td><td>Email, display name, password change form</td><td>Update profile, Change password</td></tr>
+        <tr><td><strong>Connected Accounts</strong></td><td><code>/settings/accounts</code></td><td>List TikTok accounts với last sync time</td><td>Connect new account, Disconnect account</td></tr>
+        <tr><td><strong>Workspace</strong></td><td><code>/settings/workspace</code></td><td>Workspace name, slug, niche, timezone</td><td>Update workspace settings</td></tr>
+        <tr><td><strong>AI Budget</strong></td><td><code>/settings/ai-budget</code></td><td>Current month usage, Budget limit, Reset date, Usage history chart</td><td>Set budget limit, View history</td></tr>
+        <tr><td><strong>Team</strong></td><td><code>/settings/team</code></td><td>Team member list, Invite button</td><td>Invite member (Phase 2 — button exists, chưa functional)</td></tr>
+        <tr><td><strong>Billing</strong></td><td><code>/settings/billing</code></td><td>Current plan, Invoice history, Payment method, Upgrade button</td><td>View invoices, Upgrade plan (UI only)</td></tr>
+        <tr><td><strong>Notifications</strong></td><td><code>/settings/notifications</code></td><td>Notification preferences (email digest, trend alerts)</td><td>Toggle notification types</td></tr>
+      </table>
+    </div>
+    <div class="callout found">
+      <div class="callout-label">Tổng số screens</div>
+      23 screens xác nhận trong codebase (6 auth/public + 10 dashboard + 7 settings).
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 5 — FEATURE INVENTORY -->
+  <!-- ============================================================== -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <span class="section-num">Phần 05</span>
+      <h2>Feature Inventory</h2>
+    </div>
+
+    <h3>Module: Accounts</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tính năng</th><th>Mục đích</th><th>Input</th><th>Output</th></tr>
+        <tr><td>Đăng ký workspace</td><td>Tạo tenant mới</td><td>email, password, display name</td><td>JWT tokens, workspace created</td></tr>
+        <tr><td>Đăng nhập</td><td>Xác thực user</td><td>email, password</td><td>JWT access token (15 phút) + refresh token (7 ngày)</td></tr>
+        <tr><td>Refresh token</td><td>Gia hạn session</td><td>refresh token</td><td>JWT mới</td></tr>
+        <tr><td>Đăng xuất</td><td>Revoke session</td><td>refresh token</td><td>Token bị xóa</td></tr>
+        <tr><td>Kết nối TikTok OAuth</td><td>Link TikTok account</td><td>OAuth callback code</td><td>social_account record, tokens encrypted</td></tr>
+        <tr><td>Ngắt kết nối TikTok</td><td>Remove account</td><td>social account ID</td><td>Account deactivated</td></tr>
+        <tr><td>Account Groups</td><td>Nhóm các TikTok accounts</td><td>group name, account IDs</td><td>Group created với members</td></tr>
+        <tr><td>Auto token refresh</td><td>Prevent OAuth expiry</td><td>Expiring tokens</td><td>Tokens refreshed mỗi 30 phút</td></tr>
+      </table>
+    </div>
+
+    <h3>Module: Trend Intelligence</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tính năng</th><th>Mục đích</th><th>Input</th><th>Output</th></tr>
+        <tr><td>Trend Detection</td><td>Phát hiện xu hướng mới</td><td>TikTok API scan, niche filter</td><td>trend_detections records</td></tr>
+        <tr><td>Trend Scoring</td><td>Đánh giá mức độ xu hướng</td><td>velocity, volume, engagement, recency</td><td>Score 0-100 (velocity 40%, volume 25%, engagement 20%, recency 15%)</td></tr>
+        <tr><td>Trend Lifecycle Tracking</td><td>Theo dõi trạng thái</td><td>Score over time</td><td>Status: rising → peaked → declining → expired</td></tr>
+        <tr><td>Watchlist</td><td>Bookmark trends</td><td>trend ID, user notes</td><td>trend_watchlist entry</td></tr>
+        <tr><td>Competitor Monitoring</td><td>Theo dõi đối thủ</td><td>TikTok username</td><td>competitor_profiles record</td></tr>
+        <tr><td>Manual Scan Trigger</td><td>Force re-scan</td><td>POST /trends/scan</td><td>Scan job triggered</td></tr>
+      </table>
+    </div>
+
+    <h3>Module: Audience Intelligence</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tính năng</th><th>Mục đích</th><th>Input</th><th>Output</th></tr>
+        <tr><td>Audience Profile Sync</td><td>Lấy dữ liệu demographics</td><td>TikTok API (mỗi 6 giờ)</td><td>audience_profiles với JSONB: age, gender, countries, interests, active_hours</td></tr>
+        <tr><td>AI Persona Generation</td><td>Tạo persona từ data</td><td>audience_profile data</td><td>audience_personas với AI-generated description, pain_points, motivations</td></tr>
+        <tr><td>Niche Discovery</td><td>Phát hiện niche phù hợp</td><td>Audience data</td><td>Niche opportunities list</td></tr>
+        <tr><td>Monetization Opportunities</td><td>Gợi ý cơ hội</td><td>Audience + niche data</td><td>Opportunities list</td></tr>
+      </table>
+    </div>
+
+    <h3>Module: Content Brain + Content Factory</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tính năng</th><th>Mục đích</th><th>Input</th><th>Output</th></tr>
+        <tr><td>AI Idea Generation</td><td>Tạo ý tưởng content</td><td>trend context, persona, niche</td><td>content_ideas records (AI-generated)</td></tr>
+        <tr><td>AI Hook Generation</td><td>Tạo câu hook</td><td>idea context</td><td>Hook text</td></tr>
+        <tr><td>AI Script Generation</td><td>Tạo script chi tiết</td><td>topic, format, tone, audience, CTA</td><td>Script outline (Hook + sections + CTA)</td></tr>
+        <tr><td>Content Status Machine</td><td>Quản lý vòng đời ý tưởng</td><td>Status transition command</td><td>draft → approved → in_production → published / archived</td></tr>
+        <tr><td>AI Voiceover Generation</td><td>Tạo giọng đọc</td><td>Script text, voice selection, speed</td><td>Audio file → MinIO</td></tr>
+        <tr><td>Subtitle Generation</td><td>Tạo phụ đề tự động</td><td>Video/audio file</td><td>Subtitle file → MinIO</td></tr>
+        <tr><td>Content Pipelines</td><td>Template quy trình sản xuất</td><td>Pipeline steps config</td><td>Reusable workflow</td></tr>
+        <tr><td>Pipeline Runs</td><td>Thực thi pipeline</td><td>Pipeline ID, idea ID</td><td>content_pipeline_runs record với status tracking</td></tr>
+        <tr><td>Content Asset Management</td><td>Quản lý files</td><td>Upload, delete</td><td>content_assets stored in MinIO</td></tr>
+        <tr><td>Content Calendar</td><td>Xem lịch đăng bài</td><td>Date range</td><td>Calendar view của scheduled content</td></tr>
+        <tr><td>Content Strategy</td><td>AI gợi ý chiến lược</td><td>Workspace context</td><td>Strategy recommendations</td></tr>
+      </table>
+    </div>
+
+    <h3>Module: Analytics</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tính năng</th><th>Mục đích</th><th>Input</th><th>Output</th></tr>
+        <tr><td>Post Metrics Sync</td><td>Pull metrics từ TikTok</td><td>TikTok API (mỗi 3 giờ)</td><td>post_metrics: views, likes, comments, shares, saves, watch_time, revenue</td></tr>
+        <tr><td>Analytics Dashboard</td><td>Tổng quan hiệu suất</td><td>Date range, account filter</td><td>KPI summary, Top posts</td></tr>
+        <tr><td>Account-level Analytics</td><td>Analytics theo tài khoản</td><td>social account ID</td><td>Per-account performance data</td></tr>
+        <tr><td>Revenue Tracking</td><td>Theo dõi doanh thu</td><td>Post metrics</td><td>revenue_usd tổng hợp</td></tr>
+        <tr><td>Custom Report Generation</td><td>Báo cáo tùy chỉnh</td><td>Date range, metrics selection</td><td>Report (async generation)</td></tr>
+        <tr><td>Performance Benchmarking</td><td>So sánh với ngành</td><td>Workspace metrics</td><td>Benchmark comparison data</td></tr>
+      </table>
+    </div>
+
+    <h3>Module: Learning Engine</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tính năng</th><th>Mục đích</th><th>Input</th><th>Output</th></tr>
+        <tr><td>Pattern Detection</td><td>Phát hiện pattern từ dữ liệu</td><td>Post metrics history</td><td>content_patterns (winning/losing, với confidence %)</td></tr>
+        <tr><td>Improvement Recommendations</td><td>Gợi ý cải thiện cụ thể</td><td>Detected patterns</td><td>improvement_recommendations với priority + based_on_pattern_ids</td></tr>
+        <tr><td>Apply Recommendation</td><td>Đánh dấu đã áp dụng</td><td>recommendation ID</td><td>Status → applied</td></tr>
+        <tr><td>Dismiss Recommendation</td><td>Bỏ qua gợi ý</td><td>recommendation ID</td><td>Status → dismissed</td></tr>
+        <tr><td>Manual Analysis Trigger</td><td>Force re-analyze</td><td>POST /learning/analyze</td><td>Analysis job triggered</td></tr>
+      </table>
+    </div>
+
+    <h3>Module: AI Engine</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tính năng</th><th>Mục đích</th><th>Input</th><th>Output</th></tr>
+        <tr><td>Multi-Provider Routing</td><td>Route AI calls theo complexity</td><td>Request complexity, budget</td><td>Micro→Gemini Flash / Standard→GPT-4o-mini / Premium→GPT-4o</td></tr>
+        <tr><td>Fallback Routing</td><td>Failover khi provider down</td><td>Provider error</td><td>Auto-switch sang provider backup</td></tr>
+        <tr><td>Cost Tracking</td><td>Log mọi AI call</td><td>Per AI request</td><td>ai_usage_logs với tokens, cost, duration, status</td></tr>
+        <tr><td>Budget Enforcement</td><td>Chặn khi hết budget</td><td>AI request + budget check</td><td>AI_BUDGET_EXCEEDED error nếu vượt hạn mức</td></tr>
+        <tr><td>Prompt Management</td><td>Quản lý prompt templates</td><td>Create/update prompts</td><td>Versioned prompt templates trong DB</td></tr>
+        <tr><td>Provider Health Monitoring</td><td>Theo dõi status providers</td><td>Real-time call results</td><td>Latency + call count per provider</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 6 — USER FLOW -->
+  <!-- ============================================================== -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <span class="section-num">Phần 06</span>
+      <h2>User Flow</h2>
+    </div>
+
+    <h3>Flow 1 — Registration &amp; First Login</h3>
+    <div class="flow-box">User truy cập /register
+  ↓ Điền email, password, display name
+  ↓ Submit form
+  ↓ [POST /api/v1/auth/register]
+  ↓ Workspace tạo → User tạo → Tokens phát hành
+→ Redirect /onboarding
+  ↓ 4-step wizard
+  ↓ Bước 2: TikTok OAuth (optional)
+  ↓ Bước 3: Chọn niche
+→ Redirect /dashboard
+<span class="result">✓ User đang trên Dashboard lần đầu tiên</span></div>
+
+    <h3>Flow 2 — Tạo nội dung từ Trend</h3>
+    <div class="flow-box">/dashboard/trends
+  ↓ Filter theo niche của mình
+  ↓ Click vào trend card
+/dashboard/trends/[id]
+  ↓ Đọc trend detail, score, lifecycle
+  ↓ Click "Generate content idea"
+/dashboard/content/generate
+  ↓ Form: Topic (pre-filled từ trend), Tone, Audience, Format
+  ↓ Click "Generate" → AI call (Standard tier → GPT-4o-mini)
+  ↓ [Hiển thị: Hook + Script outline + Hashtags]
+  ↓ Click "Lưu &amp; Bắt đầu tạo nội dung"
+/dashboard/content/[id]/media   ← Bước 2
+  ↓ Upload video file (drag-drop)
+  ↓ Generate voiceover: Chọn giọng → Click Generate
+  ↓ Chọn background music
+  ↓ Click "Tiếp theo: Caption →"
+/dashboard/content/[id]/caption   ← Bước 3
+  ↓ Edit caption (2200 chars)
+  ↓ Add/remove hashtags
+  ↓ Toggle TikTok settings (comments, duet, stitch, download)
+  ↓ Click "Tiếp theo: Đăng bài →"
+/dashboard/content/[id]/publish   ← Bước 4
+  ↓ Chọn TikTok account
+  ↓ Chọn thời gian (AI best-time gợi ý hoặc custom)
+  ↓ Click "Lên lịch" HOẶC "Đăng ngay"
+<span class="result">✓ Content đã được scheduled hoặc published</span>
+<span class="note">// Xem note: backend publishing API tồn tại nhưng actual TikTok post integration chưa xác nhận</span></div>
+
+    <h3>Flow 3 — Token Auto-Refresh (Transparent to User)</h3>
+    <div class="flow-box">User gọi bất kỳ API nào sau 15 phút
+  ↓ API trả về 401 Unauthorized
+  ↓ Axios response interceptor (frontend) detect 401
+  ↓ Tự động POST /api/v1/auth/refresh với refresh token
+  ↓ Nếu thành công → retry request ban đầu
+  ↓ Nếu refresh token cũng hết hạn → redirect /login
+<span class="result">✓ Hoặc session tiếp tục / Hoặc user phải login lại</span></div>
+
+    <h3>Flow 4 — View Analytics sau khi đăng bài</h3>
+    <div class="flow-box">/dashboard/analytics
+  ↓ [GET /api/v1/analytics/overview]
+  ↓ Xem tổng Views, Likes, Revenue
+  ↓ Click vào post cụ thể
+  ↓ [GET /api/v1/analytics/posts/{id}]
+  ↓ Xem detailed metrics cho bài đó
+  ↓ Click "Export report" → [POST /api/v1/analytics/reports] (async)
+<span class="job">↓ [Background] AnalyticsSyncJob chạy mỗi 3 giờ → cập nhật metrics</span>
+/dashboard/learning
+  ↓ Xem AI-detected patterns
+  ↓ Click "Apply" trên recommendation
+  ↓ [PATCH /api/v1/learning/recommendations/{id}/status]
+<span class="result">✓ User biết pattern nào hoạt động tốt</span></div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 7 — SYSTEM FLOW -->
+  <!-- ============================================================== -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <span class="section-num">Phần 07</span>
+      <h2>System Flow</h2>
+    </div>
+
+    <h3>Flow: Tạo ý tưởng content bằng AI</h3>
+    <div class="flow-box">[Frontend] POST /api/v1/content/ideas/generate
+  ↓ [API Gateway] JWT middleware → extract tenant_id, user_id
+  ↓ [Carter Endpoint] ContentEndpoints.cs → MediatR Send(GenerateIdeaCommand)
+  ↓ [Handler] GenerateIdeaHandler
+      1. Check AI budget (ai_usage_logs vs limit)
+      2. Load prompt template từ ai_prompts table (slug: "content-idea-generator")
+      3. Route AI call: Standard tier → AIProviderRouter.cs → GPT-4o-mini
+      4. Gọi OpenAI API
+      5. Log to ai_usage_logs (tokens, cost, duration, status)
+      6. Parse response → ContentIdea domain entity
+      7. ContentIdea.Create() với generated_by_ai=true
+      8. Save to content_ideas (với tenant_id)
+      9. Raise ContentIdeaCreatedEvent
+  ↓ [OutboxDomainEventDispatcher] Lưu event vào outbox_messages
+  ↓ [Response] Return ApiResponse{data: ideaId}
+<span class="job">↓ [Background, ~10s] OutboxProcessor publish ContentIdeaCreatedEvent</span>
+<span class="result">✓ Idea xuất hiện trong /dashboard/content</span></div>
+
+    <h3>Flow: TikTok OAuth Connect</h3>
+    <div class="flow-box">[Frontend] User click "Connect TikTok"
+  ↓ Redirect đến TikTok authorization URL (PKCE flow)
+  ↓ User approve trên TikTok
+  ↓ TikTok redirect đến /auth/tiktok/callback?code=...&amp;state=...
+[Frontend] TikTokCallbackPage xử lý
+  ↓ [POST /api/v1/accounts/social]
+  ↓ ConnectTikTokHandler
+      1. Validate state (CSRF protection)
+      2. Exchange code → access_token + refresh_token (TikTokOAuthService)
+      3. Encrypt tokens (AES-256, TokenEncryptionService)
+      4. Lưu vào social_accounts
+      5. Raise SocialAccountConnectedEvent
+<span class="job">↓ [Background, 30 phút] TikTokTokenRefreshJob sẽ monitor token expiry</span>
+<span class="result">✓ Account xuất hiện trong /settings/accounts</span></div>
+
+    <h3>Flow: Analytics Sync (Background)</h3>
+    <div class="flow-box"><span class="job">[Hangfire] AnalyticsSyncJob trigger mỗi 3 giờ</span>
+  ↓ Lấy danh sách tất cả active social_accounts có token hợp lệ
+  ↓ Cho mỗi account:
+      1. Gọi TikTok API: lấy posts metrics
+      2. Update post_metrics (views, likes, comments, shares, saves, watch_time, revenue_usd)
+      3. Nếu post mới → tạo content_posts record
+  ↓ Invalidate Redis cache: analytics:overview:* + analytics:posts:*
+<span class="result">✓ Analytics dashboard cập nhật dữ liệu mới</span></div>
+
+    <h3>Flow: Domain Event Processing (Outbox Pattern)</h3>
+    <div class="flow-box">Bất kỳ domain event nào (ví dụ: ContentIdeaApprovedEvent)
+  ↓ OutboxDomainEventDispatcher.cs
+  ↓ Serialize event → outbox_messages table
+  ↓ SaveChanges (trong cùng DB transaction với business data)
+<span class="job">[Background, ~10s] OutboxProcessor (Hangfire)</span>
+  ↓ Query unprocessed outbox_messages
+  ↓ MediatREventDispatcher.Publish(event)
+  ↓ Update outbox_messages.processed_at = now()
+<span class="result">✓ Đảm bảo at-least-once delivery (no event loss)</span></div>
+
+    <h3>Flow: Caching Strategy</h3>
+    <div class="flow-box">Request đến (ví dụ: GET /trends)
+  ↓ Check Redis cache key: trends:feed:{tenantId}:{variant}
+  ↓ CACHE HIT → return từ Redis (TTL: 60s cho hot data)
+  ↓ CACHE MISS →
+      1. Query PostgreSQL
+      2. Set Redis cache với TTL phù hợp:
+         - Trend feed: 60s (Hot)
+         - Audience profile: 10 phút (Warm)
+         - Analytics overview: 10 phút (Warm)
+         - Prompt templates: 1 giờ (Cold)
+         - AI Recommendations: 1 giờ (Cold)
+         - Workspace info: 24 giờ (Frozen)
+      3. Return data</div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 8 — AUTOMATION FLOW -->
+  <!-- ============================================================== -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <span class="section-num">Phần 08</span>
+      <h2>Automation Flow</h2>
+    </div>
+
+    <h3>Automation hiện có trong codebase</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Automation</th><th>Trigger</th><th>Điều kiện</th><th>Kết quả</th></tr>
+        <tr><td><strong>OAuth Token Refresh</strong></td><td>Hangfire cron: mỗi 30 phút</td><td>Token expires_at trong 2 giờ tới</td><td>Token được refresh trước khi hết hạn</td></tr>
+        <tr><td><strong>Audience Data Sync</strong></td><td>Hangfire cron: mỗi 6 giờ</td><td>Social account active &amp; token valid</td><td>audience_profiles cập nhật từ TikTok API</td></tr>
+        <tr><td><strong>Analytics Sync</strong></td><td>Hangfire cron: mỗi 3 giờ</td><td>Social account active &amp; token valid</td><td>post_metrics cập nhật từ TikTok API</td></tr>
+        <tr><td><strong>Domain Event Processing</strong></td><td>Hangfire cron: mỗi 10 giây</td><td>Unprocessed outbox_messages tồn tại</td><td>Events được publish qua MediatR</td></tr>
+        <tr><td><strong>AI Provider Fallback</strong></td><td>Event-driven: provider error</td><td>Primary provider returns error</td><td>Auto-route sang fallback provider</td></tr>
+      </table>
+    </div>
+
+    <div class="callout missing">
+      <div class="callout-label">Không tìm thấy trong codebase</div>
+      <ul>
+        <li>Auto-publish job (scheduled content → TikTok API post): <code>TrendScanJob</code> tồn tại nhưng <strong>chưa được đăng ký trong Program.cs</strong></li>
+        <li>Auto content generation pipelines (trigger từ trend detection)</li>
+        <li>Notification automation (email digests, trend alerts)</li>
+        <li>Drip onboarding automation</li>
+        <li>Learning analysis cron job (manual trigger only qua POST /learning/analyze)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 9 — BACKGROUND JOBS -->
+  <!-- ============================================================== -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <span class="section-num">Phần 09</span>
+      <h2>Background Jobs</h2>
+    </div>
+
+    <p>Hangfire được cấu hình với PostgreSQL backend, 5 worker threads, queues: <code>default</code> / <code>critical</code> / <code>low</code>.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Job Name</th><th>Class</th><th>Schedule</th><th>Module</th><th>Mục đích</th><th>Input</th><th>Kết quả</th></tr>
+        <tr>
+          <td><code>outbox-processor</code></td>
+          <td><code>OutboxProcessor</code></td>
+          <td>Mỗi 10 giây</td>
+          <td>Infrastructure</td>
+          <td>Publish domain events từ outbox table</td>
+          <td>Unprocessed outbox_messages</td>
+          <td>Events được dispatch qua MediatR, processed_at updated</td>
+        </tr>
+        <tr>
+          <td><code>tiktok-token-refresh</code></td>
+          <td><code>TikTokTokenRefreshJob</code></td>
+          <td>Mỗi 30 phút</td>
+          <td>Accounts</td>
+          <td>Refresh TikTok OAuth tokens sắp hết hạn</td>
+          <td>social_accounts với token_expires_at trong 2h</td>
+          <td>Tokens mới được lưu (encrypted)</td>
+        </tr>
+        <tr>
+          <td><code>audience-sync</code></td>
+          <td><code>AudienceSyncJob</code></td>
+          <td>Mỗi 6 giờ</td>
+          <td>Audience</td>
+          <td>Refresh demographic data từ TikTok</td>
+          <td>Active social accounts</td>
+          <td>audience_profiles updated, Redis cache invalidated</td>
+        </tr>
+        <tr>
+          <td><code>analytics-sync</code></td>
+          <td><code>AnalyticsSyncJob</code></td>
+          <td>Mỗi 3 giờ</td>
+          <td>Analytics</td>
+          <td>Pull post metrics từ TikTok API</td>
+          <td>content_posts với social accounts</td>
+          <td>post_metrics updated, analytics cache invalidated</td>
+        </tr>
+        <tr>
+          <td><code>trend-scan</code> <span class="badge badge-yellow">Chưa đăng ký</span></td>
+          <td><code>TrendScanJob</code></td>
+          <td>Không được đăng ký trong Program.cs</td>
+          <td>Trends</td>
+          <td>Scan TikTok cho trending keywords per niche</td>
+          <td>Niches của workspace</td>
+          <td>trend_detections created/updated</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">Quan trọng</div>
+      <code>TrendScanJob</code> class tồn tại trong <code>Trendify.Modules.Trends</code> nhưng <strong>không được đăng ký</strong> như recurring job trong <code>Program.cs</code>. Trend data hiện tại chỉ có thể được trigger bằng cách gọi <code>POST /api/v1/trends/scan</code> thủ công.
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 10 — DATABASE DOMAIN OVERVIEW -->
+  <!-- ============================================================== -->
+  <section class="section" id="s10">
+    <div class="section-header">
+      <span class="section-num">Phần 10</span>
+      <h2>Database Domain Overview</h2>
+    </div>
+
+    <p>Tất cả entities kế thừa từ <code>TenantEntity</code>: có <code>id UUID</code>, <code>tenant_id UUID NOT NULL</code>, <code>created_at</code>, <code>updated_at</code>, <code>deleted_at</code> (soft delete).</p>
+
+    <h3>Toàn bộ Entities và quan hệ</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Entity</th><th>Table</th><th>Mô tả</th><th>Quan hệ chính</th></tr>
+        <tr><td><strong>Workspace</strong></td><td><code>workspaces</code></td><td>Tenant root. Mỗi workspace = 1 tổ chức. Plan: free/paid. Slug unique.</td><td>1 Workspace → N Users, N SocialAccounts</td></tr>
+        <tr><td><strong>User</strong></td><td><code>users</code></td><td>Creator/owner của workspace. Role: 'owner' (default). Stores password_hash, last_login_at.</td><td>N Users → 1 Workspace. User → N ContentIdeas (created_by)</td></tr>
+        <tr><td><strong>SocialAccount</strong></td><td><code>social_accounts</code></td><td>Tài khoản TikTok (hoặc platform khác) được kết nối. Tokens stored encrypted. follower_count cached.</td><td>N SocialAccounts → 1 Workspace. 1 SocialAccount → N AudienceProfiles, N ContentPosts</td></tr>
+        <tr><td><strong>AccountGroup</strong></td><td><code>account_groups</code></td><td>Nhóm các SocialAccounts để quản lý theo batch.</td><td>1 Group → N SocialAccounts (qua account_group_members)</td></tr>
+        <tr><td><strong>TrendDetection</strong></td><td><code>trend_detections</code></td><td>Xu hướng được phát hiện. Score 0-100. Lifecycle: rising→peaked→declining→expired. Tenant-scoped.</td><td>1 TrendDetection → N ContentIdeas (trend_id)</td></tr>
+        <tr><td><strong>TrendWatchlist</strong></td><td><code>trend_watchlist</code></td><td>User bookmark một trend. Có notes field.</td><td>N:M — User ↔ TrendDetection</td></tr>
+        <tr><td><strong>CompetitorProfile</strong></td><td><code>competitor_profiles</code></td><td>TikTok account của đối thủ được theo dõi. last_analyzed_at tracked.</td><td>→ Workspace (tenant_id)</td></tr>
+        <tr><td><strong>AudienceProfile</strong></td><td><code>audience_profiles</code></td><td>Dữ liệu demographics của một SocialAccount. age_distribution, gender_split, top_countries, top_interests, active_hours — tất cả JSONB.</td><td>N:1 → SocialAccount</td></tr>
+        <tr><td><strong>AudiencePersona</strong></td><td><code>audience_personas</code></td><td>AI-generated persona. name, demographics (JSONB), pain_points (JSONB), motivations (JSONB), content_preferences (JSONB).</td><td>N:1 → SocialAccount (optional). Referenced by ContentIdea.target_persona_id</td></tr>
+        <tr><td><strong>ContentIdea</strong></td><td><code>content_ideas</code></td><td>Ý tưởng/script nội dung. title, hook, script, cta. Status machine: draft→approved→in_production→published/archived. Linked to trend + persona.</td><td>→ Workspace, → User (creator), → TrendDetection (optional), → AudiencePersona (optional), → N ContentAssets, → N ContentPipelineRuns</td></tr>
+        <tr><td><strong>ContentAsset</strong></td><td><code>content_assets</code></td><td>Video, audio, subtitle, thumbnail files. storage_key points to MinIO. duration_seconds, file_size_bytes tracked.</td><td>N:1 → ContentIdea</td></tr>
+        <tr><td><strong>ContentPipeline</strong></td><td><code>content_pipelines</code></td><td>Template quy trình sản xuất. steps stored as JSONB. Reusable template.</td><td>→ Workspace, → N ContentPipelineRuns</td></tr>
+        <tr><td><strong>ContentPipelineRun</strong></td><td><code>content_pipeline_runs</code></td><td>Một lần chạy pipeline. Status: pending→running→completed/failed. started_at, completed_at tracked.</td><td>→ ContentPipeline, → ContentIdea</td></tr>
+        <tr><td><strong>ContentPost</strong></td><td><code>content_posts</code></td><td>Bài đã đăng lên TikTok. Lưu platform_post_id, caption, posted_at. Linked về ContentIdea.</td><td>→ SocialAccount, → ContentIdea (optional)</td></tr>
+        <tr><td><strong>PostMetrics</strong></td><td><code>post_metrics</code></td><td>Time-series metrics per post. views, likes, comments, shares, saves, watch_time_seconds, revenue_usd. recorded_at timestamp.</td><td>N:1 → ContentPost</td></tr>
+        <tr><td><strong>ContentPattern</strong></td><td><code>content_patterns</code></td><td>AI-detected pattern. pattern_type: winning/losing. category: hook/length/posting_time/niche. confidence %. evidence_count.</td><td>→ Workspace (tenant_id)</td></tr>
+        <tr><td><strong>ImprovementRecommendation</strong></td><td><code>improvement_recommendations</code></td><td>Gợi ý cụ thể dựa trên patterns. priority: low/medium/high/critical. status: active/applied/dismissed. based_on_pattern_ids UUID[].</td><td>→ Workspace, → SocialAccount (optional)</td></tr>
+        <tr><td><strong>AIPrompt</strong></td><td><code>ai_prompts</code></td><td>Versioned prompt templates. template text with placeholders. provider + model hints (nullable = auto-route). tenant_id NULL = system-level.</td><td>→ Workspace (optional — system prompts have NULL tenant_id)</td></tr>
+        <tr><td><strong>AIUsageLog</strong></td><td><code>ai_usage_logs</code></td><td>Log mọi AI call. feature_context, provider, model, tokens, cost_usd, duration_ms, status. correlation_id for tracing.</td><td>→ Workspace, → User (optional)</td></tr>
+        <tr><td><strong>OutboxMessage</strong></td><td><code>outbox_messages</code></td><td>Durable event store. event_type + payload (JSONB). processed_at NULL = chưa xử lý.</td><td>Infrastructure only — không liên kết domain entities</td></tr>
+      </table>
+    </div>
+
+    <h3>Domain Relationship Map</h3>
+    <div class="flow-box">Workspace (Tenant)
+├── Users (1..N)
+│   └── created ContentIdeas
+├── SocialAccounts (1..N TikTok accounts)
+│   ├── AudienceProfiles (1..N)
+│   ├── AudiencePersonas (0..N)
+│   ├── ContentPosts (1..N) ← published posts
+│   │   └── PostMetrics (time-series)
+│   └── ImprovementRecommendations (0..N, per-account)
+├── TrendDetections (1..N)
+│   └── Watchlist entries
+├── CompetitorProfiles (0..N)
+├── ContentIdeas (1..N)
+│   ├── link to TrendDetection (optional)
+│   ├── link to AudiencePersona (optional)
+│   ├── ContentAssets (video/audio/subtitle)
+│   └── ContentPipelineRuns
+├── ContentPipelines (0..N templates)
+├── ContentPatterns (AI-detected)
+├── ImprovementRecommendations (workspace-level)
+├── AIPrompts (tenant-scoped + system-level)
+└── AIUsageLogs (per-request cost tracking)</div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 11 — API OVERVIEW -->
+  <!-- ============================================================== -->
+  <section class="section" id="s11">
+    <div class="section-header">
+      <span class="section-num">Phần 11</span>
+      <h2>API Overview</h2>
+    </div>
+
+    <p>Base URL: <code>/api/v1</code>. Tất cả responses theo envelope: <code>{ data, meta, error }</code>. Framework: ASP.NET Core 9 với Carter (minimal APIs).</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>API Group</th><th>Số endpoints</th><th>Auth required</th><th>Mục đích</th><th>Rate Limit</th></tr>
+        <tr><td><strong>Auth</strong> <code>/auth/*</code></td><td>6</td><td>Không (public)</td><td>Register, Login, Refresh, Logout, Reset password</td><td>100/phút</td></tr>
+        <tr><td><strong>Accounts</strong> <code>/accounts/*</code></td><td>14</td><td>Có</td><td>Workspace, Users, Social accounts, Account groups</td><td>100/phút (sync: 10/phút)</td></tr>
+        <tr><td><strong>Trends</strong> <code>/trends/*</code></td><td>10</td><td>Có</td><td>Trend list, detail, watchlist, competitors, manual scan</td><td>100/phút</td></tr>
+        <tr><td><strong>Audience</strong> <code>/audience/*</code></td><td>8</td><td>Có</td><td>Profiles, personas, niches, monetization</td><td>100/phút</td></tr>
+        <tr><td><strong>Content</strong> <code>/content/*</code></td><td>~15</td><td>Có</td><td>Ideas CRUD, AI generation (hook/script/cta), strategy</td><td>100/phút (AI: 20/phút)</td></tr>
+        <tr><td><strong>Content Factory</strong> <code>/factory/*</code></td><td>~12</td><td>Có</td><td>Pipelines, runs, assets, voice generation, subtitle generation</td><td>100/phút (AI: 20/phút)</td></tr>
+        <tr><td><strong>Analytics</strong> <code>/analytics/*</code></td><td>8</td><td>Có</td><td>Overview, posts, accounts, revenue, reports, benchmark</td><td>100/phút (reports: 5/phút)</td></tr>
+        <tr><td><strong>Learning</strong> <code>/learning/*</code></td><td>5</td><td>Có</td><td>Patterns, recommendations, apply/dismiss, manual analyze</td><td>100/phút</td></tr>
+        <tr><td><strong>AI Engine</strong> <code>/ai/*</code></td><td>5</td><td>Có</td><td>Prompts CRUD, usage logs, budget status</td><td>20/phút</td></tr>
+        <tr><td><strong>System</strong> <code>/health, /version</code></td><td>3</td><td>Không</td><td>Health check (PostgreSQL + Redis), readiness, version</td><td>Unlimited</td></tr>
+      </table>
+    </div>
+
+    <h3>AI Provider Routing (3 tiers)</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Tier</th><th>Complexity</th><th>Primary Provider</th><th>Fallback</th><th>Use cases</th></tr>
+        <tr><td><span class="badge badge-green">Micro</span></td><td>&lt;200 tokens</td><td>gemini-flash-1.5</td><td>claude-haiku-4-5</td><td>Short tags, quick classifications</td></tr>
+        <tr><td><span class="badge badge-blue">Standard</span></td><td>200–1000 tokens</td><td>gpt-4o-mini</td><td>claude-sonnet-4-6</td><td>Script generation, hook writing, hashtags</td></tr>
+        <tr><td><span class="badge badge-violet">Premium</span></td><td>1000+ tokens</td><td>gpt-4o</td><td>claude-opus-4-8</td><td>Full strategy, persona generation, complex analysis</td></tr>
+      </table>
+    </div>
+
+    <h3>Standard Error Codes</h3>
+    <div class="two-col">
+      <div>
+        <div class="callout found">
+          <div class="callout-label">Tìm thấy trong src/shared/ErrorCodes.cs</div>
+          UNAUTHORIZED (401), FORBIDDEN (403), NOT_FOUND (404), VALIDATION_ERROR (422), RATE_LIMITED (429), AI_BUDGET_EXCEEDED (429), INTERNAL_ERROR (500), UPSTREAM_ERROR (502), ACCOUNT_NOT_CONNECTED (400), TREND_NOT_FOUND (404), IDEA_NOT_FOUND (404), PIPELINE_RUNNING (409)
+        </div>
+      </div>
+      <div>
+        <div class="callout info">
+          <div class="callout-label">Pagination format</div>
+          <code>PagedResult&lt;T&gt;</code>: items, cursor (cursor-based pagination), hasMore, total.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 12 — EVENT & WORKFLOW MAP -->
+  <!-- ============================================================== -->
+  <section class="section" id="s12">
+    <div class="section-header">
+      <span class="section-num">Phần 12</span>
+      <h2>Event &amp; Workflow Map</h2>
+    </div>
+
+    <p>Từ <code>docs/decisions/2026-06-20-inter-module-communication.md</code>: Modules chỉ communicate qua domain events. Không có direct service imports giữa modules.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Event</th><th>Raised by</th><th>Consumers / Handlers</th><th>Kết quả</th></tr>
+        <tr><td><code>AccountCreatedEvent</code></td><td>RegisterWorkspaceHandler</td><td>Không tìm thấy handler cụ thể trong Phase 1</td><td>Workspace + User được tạo</td></tr>
+        <tr><td><code>SocialAccountConnectedEvent</code></td><td>ConnectTikTokHandler</td><td>Không tìm thấy handler cụ thể — implied: trigger initial audience sync</td><td>TikTok account connected, initial sync possibly triggered</td></tr>
+        <tr><td><code>TrendDetectedEvent</code></td><td>TrendDetection domain (TrendScanJob)</td><td>Không tìm thấy handler cụ thể trong Phase 1</td><td>New trend_detection record</td></tr>
+        <tr><td><code>ContentIdeaCreatedEvent</code></td><td>ContentIdea.Create() via handler</td><td>Không tìm thấy handler cụ thể trong Phase 1</td><td>Idea available in content list</td></tr>
+        <tr><td><code>ContentIdeaApprovedEvent</code></td><td>ContentIdea.Approve() method</td><td>Không tìm thấy handler cụ thể</td><td>Status → approved, possibly triggers pipeline</td></tr>
+        <tr><td><code>ContentIdeaPublishedEvent</code></td><td>ContentIdea.MarkPublished()</td><td>Không tìm thấy handler cụ thể — implied: create ContentPost in Analytics module</td><td>Status → published</td></tr>
+        <tr><td><code>ImprovementRecommendationGeneratedEvent</code></td><td>Learning module analysis</td><td>Không tìm thấy handler — implied: notification</td><td>New recommendation available</td></tr>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-label">Quan sát quan trọng</div>
+      Domain events được định nghĩa và raised trong code, nhưng <strong>chưa có cross-module event handlers</strong> trong Phase 1. Các events hiện chỉ được persisted vào outbox_messages và processed bởi OutboxProcessor, nhưng không có handler nào trong các module khác subscribe những events này. Phase 1 chủ yếu dùng in-process MediatR cho internal module flows.
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 13 — CURRENT PRODUCT CAPABILITIES -->
+  <!-- ============================================================== -->
+  <section class="section" id="s13">
+    <div class="section-header">
+      <span class="section-num">Phần 13</span>
+      <h2>Current Product Capabilities</h2>
+    </div>
+    <p>Dựa trên đọc trực tiếp codebase. ✓ = Frontend UI + Backend API đều tồn tại. ~ = UI tồn tại nhưng backend chưa xác nhận đầy đủ. ✗ = Không có trong code Phase 1.</p>
+
+    <ul class="checklist">
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Đăng ký workspace mới</strong><span class="check-note">POST /auth/register → RegisterWorkspaceHandler. Tạo Workspace + User cùng lúc.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Đăng nhập / Đăng xuất</strong><span class="check-note">JWT RS256, AccessToken 15 phút, RefreshToken 7 ngày. Auto-refresh qua Axios interceptor.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Kết nối tài khoản TikTok</strong><span class="check-note">TikTok OAuth PKCE. Tokens encrypted (AES-256). Stored in social_accounts. Auto-refresh mỗi 30 phút.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Quản lý nhiều tài khoản TikTok</strong><span class="check-note">Multiple social_accounts per workspace. Account Groups available.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Xem danh sách xu hướng</strong><span class="check-note">GET /trends. Filter theo niche, sort theo score/velocity. Score 0-100 có formula.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Xem chi tiết xu hướng</strong><span class="check-note">Score history, lifecycle (rising/peaked/declining/expired), competitor data.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Theo dõi xu hướng (Watchlist)</strong><span class="check-note">POST /trends/watchlist. User có thể thêm/xóa trend khỏi watchlist với notes.</span></span></li>
+      <li><span class="check-icon check-partial">~</span><span class="check-text"><strong>Tự động phát hiện xu hướng mới</strong><span class="check-note">TrendScanJob class tồn tại nhưng chưa được đăng ký trong Program.cs. Chỉ có thể trigger thủ công qua POST /trends/scan.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Xem dữ liệu khán giả</strong><span class="check-note">audience_profiles: age, gender, countries, interests, active_hours. Auto-sync mỗi 6 giờ.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Tạo AI persona từ audience data</strong><span class="check-note">POST /audience/personas/generate. AI phân tích demographics → persona với pain_points, motivations.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Tạo ý tưởng content bằng AI</strong><span class="check-note">POST /content/ideas/generate. Multi-provider AI routing. Token cost tracked.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Tạo Hook bằng AI</strong><span class="check-note">POST /content/ideas/{id}/generate-hook. Gắn với idea cụ thể.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Tạo Script bằng AI</strong><span class="check-note">POST /content/ideas/{id}/generate-script. Output: Hook + sections (Problem/Content/CTA) + timings.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Quản lý vòng đời ý tưởng</strong><span class="check-note">Status machine: draft → approved → in_production → published / archived.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Tạo voiceover bằng AI</strong><span class="check-note">POST /factory/voice/generate. Voice selection, speed control. File saved to MinIO.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Tạo subtitle tự động</strong><span class="check-note">POST /factory/subtitles/generate. Saved to MinIO.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Upload và lưu video/audio assets</strong><span class="check-note">content_assets → MinIO storage. Supports video, audio, subtitle, thumbnail types.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Quản lý caption và hashtags</strong><span class="check-note">Frontend UI đầy đủ (2200 char cap, 30 hashtag limit, suggest/add/remove). Backend: ContentIdea fields.</span></span></li>
+      <li><span class="check-icon check-partial">~</span><span class="check-text"><strong>Lên lịch đăng bài</strong><span class="check-note">Frontend UI đầy đủ (time picker, AI best-time suggestions). Không tìm thấy scheduled publishing job trong backend.</span></span></li>
+      <li><span class="check-icon check-partial">~</span><span class="check-text"><strong>Đăng bài lên TikTok</strong><span class="check-note">Frontend UI có "Đăng ngay" button. ContentIdea.MarkPublished() exists. Actual TikTok API posting not confirmed in codebase.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Xem analytics (Views, Likes, Revenue)</strong><span class="check-note">GET /analytics/overview. post_metrics synced mỗi 3 giờ từ TikTok API.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Tạo báo cáo analytics</strong><span class="check-note">POST /analytics/reports (async generation). Xuất report theo date range.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>AI phát hiện content patterns</strong><span class="check-note">content_patterns table. winning/losing patterns với confidence %. Manual trigger hoặc auto (chưa có cron).</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>AI recommendations</strong><span class="check-note">improvement_recommendations với priority. User có thể Apply / Dismiss.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Theo dõi chi phí AI</strong><span class="check-note">ai_usage_logs mọi call. AI budget enforcement với AI_BUDGET_EXCEEDED error.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Multi-provider AI routing</strong><span class="check-note">OpenAI + Anthropic + Google Gemini. 3 tiers. Auto-fallback khi provider lỗi.</span></span></li>
+      <li><span class="check-icon check-yes">✓</span><span class="check-text"><strong>Content calendar view</strong><span class="check-note">Frontend UI tại /dashboard/content/calendar. Backend: content_posts + scheduled content.</span></span></li>
+      <li><span class="check-icon check-partial">~</span><span class="check-text"><strong>Content pipeline templates</strong><span class="check-note">content_pipelines table + API (CRUD + run). Frontend pipeline stepper (4 bước) không link đến backend pipelines.</span></span></li>
+      <li><span class="check-icon check-no">✗</span><span class="check-text"><strong>Multi-user workspace / Team invite</strong><span class="check-note">Schema có users table + role column. UI có /settings/team nhưng POST /accounts/users/invite đánh dấu Phase 2.</span></span></li>
+      <li><span class="check-icon check-no">✗</span><span class="check-text"><strong>Billing / Payment integration</strong><span class="check-note">UI /settings/billing tồn tại. Không có Stripe hoặc payment provider trong codebase.</span></span></li>
+      <li><span class="check-icon check-no">✗</span><span class="check-text"><strong>Email notifications</strong><span class="check-note">Notification settings UI tồn tại. Không có email service trong Infrastructure.</span></span></li>
+      <li><span class="check-icon check-no">✗</span><span class="check-text"><strong>Agency / White-label</strong><span class="check-note">Không tìm thấy trong Phase 1.</span></span></li>
+      <li><span class="check-icon check-no">✗</span><span class="check-text"><strong>API access for external systems</strong><span class="check-note">Không tìm thấy.</span></span></li>
+      <li><span class="check-icon check-no">✗</span><span class="check-text"><strong>TikTok Affiliate / Shop integration</strong><span class="check-note">Không tìm thấy bất kỳ mention nào về affiliate links, product catalog, hay commission tracking.</span></span></li>
+    </ul>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SECTION 14 — END-TO-END WORKFLOW -->
+  <!-- ============================================================== -->
+  <section class="section" id="s14">
+    <div class="section-header">
+      <span class="section-num">Phần 14</span>
+      <h2>End-to-End Workflow</h2>
+    </div>
+
+    <h3>Toàn bộ vòng đời sử dụng sản phẩm hiện tại</h3>
+    <div class="flow-box" style="line-height: 2.1;"><span class="step">═══ BƯỚC 1: KHỞI TẠO ═══</span>
+User truy cập /pricing → Chọn plan
+  ↓
+/register — Tạo workspace (tên, email, password)
+  → PostgreSQL: INSERT workspaces + users (role='owner')
+  → JWT access token (15 phút) + refresh token (7 ngày)
+  ↓
+/onboarding — Wizard 4 bước
+  Bước 1: Welcome
+  Bước 2: Connect TikTok → OAuth → social_accounts encrypted
+  Bước 3: Chọn niche (8 lựa chọn)
+  Bước 4: Done → /dashboard
+
+<span class="step">═══ BƯỚC 2: NGHIÊN CỨU ═══</span>
+/dashboard
+  → Xem: AI Budget %, Trending Now feed, Quick stats
+  ↓
+/dashboard/trends
+  → Filter niche → Sorted by score (0-100)
+  → GET /api/v1/trends (cached Redis 60s)
+  ↓
+/dashboard/trends/[id]
+  → Đọc chi tiết: score history, lifecycle, related content
+  → Add to watchlist (POST /trends/watchlist)
+  → Bấm "Generate content idea" → /content/generate
+  ↓
+/dashboard/audience
+  → Xem demographics của TikTok account đã kết nối
+  → AI-generated personas
+  <span class="job">[Background] AudienceSyncJob mỗi 6 giờ cập nhật data</span>
+
+<span class="step">═══ BƯỚC 3: TẠO NỘI DUNG ═══</span>
+/dashboard/content/generate
+  → Form: Topic, Format, Tone, Audience
+  → Bấm Generate
+  → [POST /api/v1/content/ideas/generate]
+  → AI call (Standard tier: GPT-4o-mini)
+  → ai_usage_logs: ghi nhận tokens + cost
+  → content_ideas record tạo ra (status='draft', generated_by_ai=true)
+  → Hiển thị: Hook + Script outline + Hashtags
+  → Bấm "Lưu &amp; Bắt đầu" → /content/[id]/media
+
+STEP 1/4 — Script: /dashboard/content/[id]
+  → ContentPipelineStepper (Step 1 active)
+  → Review Hook, Script Outline, Hashtags
+  → Có thể Approve idea (status → 'approved')
+  → Bấm "Tiếp theo: Media →"
+
+STEP 2/4 — Media: /dashboard/content/[id]/media
+  → Upload video file (9:16 format)
+  → [POST /factory/voice/generate] → AI voiceover → MinIO
+  → Chọn background music (5 tracks)
+  → Preview audio
+  → Bấm "Tiếp theo: Caption →"
+
+STEP 3/4 — Caption: /dashboard/content/[id]/caption
+  → Viết/edit caption (max 2200 chars)
+  → Hashtag manager (thêm/xóa/gợi ý, max 30)
+  → Toggle TikTok settings (comments/duet/stitch/download)
+  → Chọn ảnh bìa
+  → Bấm "Tiếp theo: Đăng bài →"
+
+STEP 4/4 — Publish: /dashboard/content/[id]/publish
+  → Chọn TikTok account (trong social_accounts)
+  → AI best-time suggestions (day + time + reach %)
+  → HOẶC custom date/time picker
+  → Preview mock TikTok UI
+  → Bấm "LÊN LỊCH" → content status → scheduled
+  → Bấm "ĐĂNG NGAY" → content status → in_production → published (?)
+
+<span class="step">═══ BƯỚC 4: THEO DÕI ═══</span>
+<span class="job">[Background] AnalyticsSyncJob mỗi 3 giờ</span>
+  → Pull post_metrics từ TikTok API
+  → Update: views, likes, comments, shares, saves, watch_time, revenue_usd
+  → Invalidate Redis analytics cache
+
+/dashboard/analytics
+  → KPI dashboard: tổng Views, Likes, Revenue
+  → Top Posts table với metrics
+  → Account-level breakdown
+  → Xuất báo cáo (async)
+
+<span class="step">═══ BƯỚC 5: HỌC HỎI ═══</span>
+/dashboard/learning
+  → User hoặc system trigger: POST /learning/analyze
+  → AI phân tích post_metrics history
+  → content_patterns tạo ra (winning/losing với confidence %)
+  → improvement_recommendations tạo ra (priority: low/medium/high/critical)
+  → User click Apply → status='applied'
+  → User click Dismiss → status='dismissed'
+
+<span class="step">═══ VÒNG LẶP ═══</span>
+Quay lại /dashboard/trends
+  → Lần này có dữ liệu thực từ analytics + recommendations
+  → Chọn trend phù hợp hơn
+  → Tạo content tốt hơn...
+<span class="result">✓ Growth Loop: Research → Create → Publish → Analyze → Learn → Research</span></div>
+
+    <h3>Mức độ khớp với ý tưởng TikTok Affiliate Automation</h3>
+    <div class="callout warn">
+      <div class="callout-label">Phân tích Gap</div>
+      <p>Hệ thống hiện tại là <strong>TikTok Content Creator OS</strong>, không phải <strong>TikTok Affiliate Automation</strong>. Các thành phần cốt lõi của Affiliate Automation <strong>chưa có</strong> trong codebase:</p>
+      <ul style="margin-top: 8px;">
+        <li>❌ <strong>Product Catalog</strong> — Không có entity Product, không có TikTok Shop integration</li>
+        <li>❌ <strong>Affiliate Links</strong> — Không có bảng affiliate_links, không có link generation</li>
+        <li>❌ <strong>Commission Tracking</strong> — Không có commission entity, không có revenue attribution đến sản phẩm</li>
+        <li>❌ <strong>Campaign Management</strong> — Không có Campaign entity</li>
+        <li>❌ <strong>Conversion Tracking</strong> — post_metrics có revenue_usd nhưng không có product-level attribution</li>
+        <li>❌ <strong>TikTok Shop API Integration</strong> — Không tìm thấy</li>
+      </ul>
+      <p style="margin-top: 8px;">Hệ thống hiện tại phù hợp với <strong>Phase 1 của content creation workflow</strong>. Để trở thành Affiliate Automation platform, cần bổ sung toàn bộ affiliate layer.</p>
+    </div>
+
+    <div class="callout found">
+      <div class="callout-label">Foundation sẵn sàng để mở rộng</div>
+      <ul>
+        <li>✓ Multi-tenant architecture (tenant_id trên mọi table)</li>
+        <li>✓ Social account OAuth infrastructure (TikTok connected)</li>
+        <li>✓ Content creation pipeline đầy đủ</li>
+        <li>✓ Analytics infrastructure (time-series metrics)</li>
+        <li>✓ AI engine với cost tracking</li>
+        <li>✓ Background job infrastructure (Hangfire)</li>
+        <li>✓ Event-driven architecture (Outbox pattern)</li>
+        <li>✓ Modular monolith — có thể thêm module Affiliate mà không phá vỡ code hiện tại</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Active nav highlight on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navItems = document.querySelectorAll('.nav-item[href^="#"]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navItems.forEach(item => item.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
