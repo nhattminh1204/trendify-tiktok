@@ -33,7 +33,7 @@ internal sealed class AccountsRepository : IAccountsRepository
     public async Task<User?> FindUserByRefreshTokenAsync(string refreshToken, CancellationToken ct)
     {
         var token = await _db.Set<UserRefreshToken>()
-            .FirstOrDefaultAsync(t => t.Token == refreshToken && t.RevokedAt == null && !t.IsExpired, ct);
+            .FirstOrDefaultAsync(t => t.Token == refreshToken && t.RevokedAt == null && t.ExpiresAt > DateTimeOffset.UtcNow, ct);
 
         if (token == null) return null;
 

@@ -17,6 +17,10 @@ function getPendingRefresh(): Promise<boolean> {
   return pendingRefresh;
 }
 
+export async function refreshTokens(): Promise<boolean> {
+  return getPendingRefresh();
+}
+
 async function doRefresh(): Promise<boolean> {
   const refreshToken = useAuthStore.getState().refreshToken;
   if (!refreshToken) return false;

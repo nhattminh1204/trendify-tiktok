@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Topbar } from "@/components/layout/topbar";
 import { useAuthStore } from "@/lib/stores/auth";
 import { TokenExpiredBanner } from "@/components/token-expired-banner";
+import { refreshTokens } from "@/lib/api/client";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -48,14 +49,26 @@ function getTitle(pathname: string): string {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { accessToken, refreshToken } = useAuthStore();
+  const { accessToken, refreshToken, hasHydrated } = useAuthStore();
   const title = useMemo(() => getTitle(pathname ?? ""), [pathname]);
+  const hydrated = useRef(false);
 
   useEffect(() => {
-    if (!accessToken && !refreshToken) {
+    if (!hasHydrated) return;
+    if (hydrated.current) return;
+    hydrated.current = true;
+
+    if (!refreshToken) {
       router.replace("/login");
+      return;
     }
-  }, [accessToken, refreshToken, router]);
+
+    if (!accessToken) {
+      refreshTokens().then((ok) => {
+        if (!ok) router.replace("/login");
+      });
+    }
+  }, [hasHydrated, accessToken, refreshToken, router]);
 
   return (
     <>

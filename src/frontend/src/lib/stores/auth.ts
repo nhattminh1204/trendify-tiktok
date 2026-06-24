@@ -13,6 +13,7 @@ interface AuthState {
   user: User | null;
   rememberMe: boolean;
   status: string | null;
+  hasHydrated: boolean;
   setTokens: (accessToken: string, refreshToken: string) => void;
   setUser: (user: User) => void;
   setRememberMe: (remember: boolean) => void;
@@ -29,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       rememberMe: true,
       status: null,
+      hasHydrated: false,
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken, status: null }),
       setUser: (user) => set({ user }),
@@ -54,7 +56,13 @@ export const useAuthStore = create<AuthState>()(
               rememberMe: true,
               status: state.status,
             }
-          : { rememberMe: false },
+          : {
+              refreshToken: state.refreshToken,
+              rememberMe: false,
+            },
+      onRehydrateStorage: () => () => {
+        useAuthStore.setState({ hasHydrated: true });
+      },
     }
   )
 );

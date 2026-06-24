@@ -31,6 +31,15 @@ export default function LoginPage() {
     onError: () => {
       setError("Google login was cancelled or failed.");
     },
+    onNonOAuthError: (nonOAuthError) => {
+      if (nonOAuthError.type === "popup_closed") {
+        setError("Sign-in popup was closed. Please try again.");
+      } else if (nonOAuthError.type === "popup_failed_to_open") {
+        setError("Sign-in popup was blocked by your browser. Please allow popups for this site.");
+      } else {
+        setError("Google sign-in failed. Please try again.");
+      }
+    },
   });
 
   return (
