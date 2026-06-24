@@ -77,6 +77,7 @@ Do NOT scan the entire repository. Minimize token usage.
 6. All user input validated at API boundary, not inside services
 7. Prompt injection prevention on all AI endpoints that accept user content
 8. Every UI component must support light mode, dark mode, and system mode — never hardcode one theme
+9. After building a new feature, do NOT auto-commit or push — wait for user to verify and run commit/push command
 
 ### PR Rules
 
