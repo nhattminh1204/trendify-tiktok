@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Trendify.Modules.Accounts.Application.Commands.ConnectTikTok;
+using Trendify.Modules.Accounts.Application.Commands.DisconnectSocialAccount;
 using Trendify.Modules.Accounts.Application.Queries.GetSocialAccounts;
 using Trendify.Modules.Accounts.Infrastructure.TikTok;
 using Trendify.Shared.Errors;
@@ -81,12 +82,12 @@ public sealed class AccountsEndpoints : ICarterModule
         .WithName("TikTokConnectCallback")
         .AllowAnonymous(); // OAuth callback — auth established after this
 
-        group.MapDelete("/social/{id:guid}", (
+        group.MapDelete("/social/{id:guid}", async (
             Guid id,
             ISender sender,
             CancellationToken ct) =>
         {
-            // DisconnectSocialAccountCommand
+            await sender.Send(new DisconnectSocialAccountCommand(id), ct);
             return Results.NoContent();
         })
         .WithName("DisconnectSocialAccount");

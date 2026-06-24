@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Trendify.Modules.AIEngine.Domain;
 
@@ -21,11 +22,21 @@ public sealed class AIPromptConfiguration : IEntityTypeConfiguration<AIPrompt>
         b.Property(x => x.FeatureContext).HasColumnName("feature_context").HasMaxLength(200).IsRequired();
         b.Property(x => x.Version).HasColumnName("version").IsRequired();
         b.Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
+        var dictComparer = new ValueComparer<Dictionary<string, string>>(
+            (a, b) => System.Text.Json.JsonSerializer.Serialize(a, (System.Text.Json.JsonSerializerOptions?)null) ==
+                      System.Text.Json.JsonSerializer.Serialize(b, (System.Text.Json.JsonSerializerOptions?)null),
+            v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null).GetHashCode(),
+            v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(
+                     System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                     (System.Text.Json.JsonSerializerOptions?)null)!
+        );
+
         b.Property(x => x.Variables).HasColumnName("variables")
             .HasColumnType("jsonb")
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, (System.Text.Json.JsonSerializerOptions?)null)!
+                v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, (System.Text.Json.JsonSerializerOptions?)null)!,
+                dictComparer
             );
         b.Property(x => x.CreatedAt).HasColumnName("created_at");
         b.Property(x => x.UpdatedAt).HasColumnName("updated_at");

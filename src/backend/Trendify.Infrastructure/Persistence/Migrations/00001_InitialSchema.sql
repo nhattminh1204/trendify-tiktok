@@ -28,15 +28,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_workspaces_slug
 CREATE TABLE IF NOT EXISTS users (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id         UUID NOT NULL,
-    workspace_id      UUID NOT NULL REFERENCES workspaces(id),
-    email             VARCHAR(320) NOT NULL,
-    password_hash     TEXT NOT NULL,
-    full_name         VARCHAR(200),
+    email             VARCHAR(255) NOT NULL,
+    password_hash     VARCHAR(255) NOT NULL,
+    display_name      VARCHAR(255),
+    is_active         BOOLEAN NOT NULL DEFAULT true,
     role              VARCHAR(50) NOT NULL DEFAULT 'owner',
     refresh_token     TEXT,
     refresh_token_expires_at TIMESTAMPTZ,
     last_login_at     TIMESTAMPTZ,
-    login_count       INT NOT NULL DEFAULT 0,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at        TIMESTAMPTZ,
     deleted_at        TIMESTAMPTZ
@@ -48,15 +47,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_users_email
 CREATE TABLE IF NOT EXISTS social_accounts (
     id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id            UUID NOT NULL,
-    workspace_id         UUID NOT NULL,
     platform             VARCHAR(50) NOT NULL,
     platform_user_id     VARCHAR(200) NOT NULL,
     display_name         VARCHAR(200),
     username             VARCHAR(200),
-    avatar_url           TEXT,
+    profile_image_url    TEXT,
+    is_active            BOOLEAN NOT NULL DEFAULT true,
     follower_count       BIGINT NOT NULL DEFAULT 0,
-    access_token_enc     TEXT,
-    refresh_token_enc    TEXT,
+    access_token_encrypted TEXT,
+    refresh_token_encrypted TEXT,
     token_expires_at     TIMESTAMPTZ,
     status               VARCHAR(30) NOT NULL DEFAULT 'active',
     last_synced_at       TIMESTAMPTZ,
@@ -93,6 +92,36 @@ CREATE TABLE IF NOT EXISTS trend_detections (
 
 CREATE INDEX IF NOT EXISTS idx_trend_detections_tenant_status_score
     ON trend_detections(tenant_id, status, score DESC) WHERE deleted_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS trend_watchlist (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id           UUID NOT NULL,
+    trend_detection_id  UUID NOT NULL REFERENCES trend_detections(id),
+    notes               TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at          TIMESTAMPTZ,
+    deleted_at          TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_trend_watchlist_tenant_trend
+    ON trend_watchlist(tenant_id, trend_detection_id) WHERE deleted_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS competitor_profiles (
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id         UUID NOT NULL,
+    tiktok_username   VARCHAR(100) NOT NULL,
+    display_name      VARCHAR(200),
+    avatar_url        VARCHAR(1000),
+    follower_count    BIGINT,
+    notes             TEXT,
+    last_scanned_at   TIMESTAMPTZ,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMPTZ,
+    deleted_at        TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_competitor_profiles_tenant_username
+    ON competitor_profiles(tenant_id, tiktok_username) WHERE deleted_at IS NULL;
 
 -- ============================================================
 -- Content module
@@ -264,3 +293,29 @@ CREATE INDEX IF NOT EXISTS idx_ai_usage_logs_tenant_created
 
 CREATE INDEX IF NOT EXISTS idx_ai_usage_logs_correlation
     ON ai_usage_logs(correlation_id);
+
+-- ============================================================
+-- Post-migration: add missing columns (idempotent)
+-- ============================================================
+ALTER TABLE social_accounts DROP COLUMN IF EXISTS workspace_id;
+ALTER TABLE social_accounts ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE users DROP COLUMN IF EXISTS workspace_id;
+ALTER TABLE users DROP COLUMN IF EXISTS login_count;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+
+-- ============================================================
+-- Infrastructure: Outbox pattern
+-- ============================================================
+CREATE TABLE IF NOT EXISTS outbox_messages (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id       UUID NOT NULL,
+    type            TEXT NOT NULL,
+    data            TEXT NOT NULL,
+    occurred_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    processed_at    TIMESTAMPTZ,
+    error           TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_messages_unprocessed
+    ON outbox_messages(occurred_at) WHERE processed_at IS NULL;

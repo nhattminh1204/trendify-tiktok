@@ -29,7 +29,7 @@ internal sealed class LoginHandler : IRequestHandler<LoginCommand, ApiResponse<L
 
         var accessToken = _jwtService.GenerateAccessToken(user.Id, user.TenantId, user.Email, user.Role);
         var refreshToken = _jwtService.GenerateRefreshToken();
-        user.SetRefreshToken(refreshToken, 7);
+        user.SetRefreshToken(refreshToken, _jwtService.RefreshTokenTtlDays);
         user.RecordLogin();
 
         await _repository.UpdateUserAsync(user, ct);
@@ -42,7 +42,7 @@ internal sealed class LoginHandler : IRequestHandler<LoginCommand, ApiResponse<L
             user.Role,
             accessToken,
             refreshToken,
-            user.RefreshTokenExpiresAt!.Value
+            user.LatestRefreshTokenExpiresAt!.Value
         ));
     }
 }

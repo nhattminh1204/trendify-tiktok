@@ -24,6 +24,7 @@ public static class ErrorCodes
     public const string PromptVariableMissing = "PROMPT_VARIABLE_MISSING";
 
     // Accounts
+    public const string UserNotFound = "USER_NOT_FOUND";
     public const string WorkspaceNotFound = "WORKSPACE_NOT_FOUND";
     public const string SocialAccountNotFound = "SOCIAL_ACCOUNT_NOT_FOUND";
     public const string SocialAccountAlreadyConnected = "SOCIAL_ACCOUNT_ALREADY_CONNECTED";
@@ -33,9 +34,17 @@ public static class ErrorCodes
 
     // Trends
     public const string TrendNotFound = "TREND_NOT_FOUND";
+    public const string TrendAlreadyWatched = "TREND_ALREADY_WATCHED";
+    public const string TrendNotWatched = "TREND_NOT_WATCHED";
 
     // Content
     public const string IdeaNotFound = "IDEA_NOT_FOUND";
     public const string PipelineRunning = "PIPELINE_RUNNING";
     public const string AssetNotFound = "ASSET_NOT_FOUND";
+    
+    // Products
+    public const string ProductNotFound = "PRODUCT_NOT_FOUND";
+    public const string ProductAlreadyExists = "PRODUCT_ALREADY_EXISTS";
+    public const string ProductAlreadyInWatchlist = "PRODUCT_ALREADY_IN_WATCHLIST";
+    public const string ProductNotInWatchlist = "PRODUCT_NOT_IN_WATCHLIST";
 }

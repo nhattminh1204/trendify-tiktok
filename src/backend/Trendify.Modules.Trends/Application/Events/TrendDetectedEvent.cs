@@ -16,6 +16,12 @@ public sealed record TrendPeakedEvent(
     decimal Score
 ) : DomainEventBase(TenantId);
 
+public sealed record TrendWatchlistItemAddedEvent(
+    Guid TenantId,
+    Guid TrendDetectionId,
+    string Keyword
+) : DomainEventBase(TenantId);
+
 public sealed record TrendDecliningEvent(
     Guid TenantId,
     Guid TrendId,

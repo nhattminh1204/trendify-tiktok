@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Trendify.Shared\Trendify.Shared.csproj" />
     <ProjectReference Include="..\Trendify.Infrastructure\Trendify.Infrastructure.csproj" />
+    <ProjectReference Include="..\Trendify.Modules.Accounts\Trendify.Modules.Accounts.csproj" />
   </ItemGroup>
 </Project>
 

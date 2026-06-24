@@ -23,19 +23,22 @@ internal sealed class RefreshTokenHandler
     {
         var user = await _repository.FindUserByRefreshTokenAsync(request.RefreshToken, ct);
 
-        if (user is null || !user.IsRefreshTokenValid(request.RefreshToken))
+        if (user is null)
             throw new UnauthorizedException(ErrorCodes.InvalidToken);
+
+        // Revoke the used refresh token (rotation)
+        await _repository.RevokeRefreshTokenAsync(request.RefreshToken, ct);
 
         var newAccessToken = _jwtService.GenerateAccessToken(user.Id, user.TenantId, user.Email, user.Role);
         var newRefreshToken = _jwtService.GenerateRefreshToken();
-        user.SetRefreshToken(newRefreshToken, 7);
+        user.SetRefreshToken(newRefreshToken, _jwtService.RefreshTokenTtlDays);
 
         await _repository.UpdateUserAsync(user, ct);
 
         return ApiResponse<RefreshTokenResponse>.Ok(new RefreshTokenResponse(
             newAccessToken,
             newRefreshToken,
-            user.RefreshTokenExpiresAt!.Value
+            user.LatestRefreshTokenExpiresAt!.Value
         ));
     }
 }

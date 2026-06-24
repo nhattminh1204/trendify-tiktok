@@ -20,7 +20,7 @@ export function ProgressBar({ value, max = 100, size = "sm", className }: Progre
 
   return (
     <div
-      className={cn("w-full rounded-full bg-gray-100", sizeClasses[size], className)}
+      className={cn("w-full rounded-full bg-gray-100 dark:bg-gray-800", sizeClasses[size], className)}
       role="progressbar"
       aria-valuenow={pct}
       aria-valuemin={0}

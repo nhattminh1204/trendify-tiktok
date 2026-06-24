@@ -29,7 +29,24 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash).HasMaxLength(255).IsRequired();
         builder.Property(u => u.DisplayName).HasMaxLength(255);
         builder.Property(u => u.Role).HasMaxLength(50).HasDefaultValue("owner");
+        builder.Property(u => u.Status).HasMaxLength(50);
         builder.HasIndex(u => u.TenantId);
+
+        builder.Ignore(u => u.LatestRefreshToken);
+        builder.Ignore(u => u.LatestRefreshTokenExpiresAt);
+    }
+}
+
+internal sealed class UserRefreshTokenConfiguration : IEntityTypeConfiguration<UserRefreshToken>
+{
+    public void Configure(EntityTypeBuilder<UserRefreshToken> builder)
+    {
+        builder.ToTable("user_refresh_tokens");
+        builder.HasKey(t => t.Id);
+        builder.Property(t => t.Token).HasMaxLength(500).IsRequired();
+        builder.HasIndex(t => t.Token).IsUnique();
+        builder.HasIndex(t => t.UserId);
+        builder.HasIndex(t => t.RevokedAt);
     }
 }
 

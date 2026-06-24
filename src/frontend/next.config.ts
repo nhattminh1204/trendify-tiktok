@@ -7,6 +7,19 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["p16-sign-sg.tiktokcdn.com", "p77-sign-sg.tiktokcdn.com"],
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin-allow-popups",
+          },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

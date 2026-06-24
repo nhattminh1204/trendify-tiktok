@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 
-export type IdeaStatus = "draft" | "approved" | "scheduled" | "published" | "archived";
+export type IdeaStatus = "draft" | "approved" | "ready" | "in_production" | "scheduled" | "published" | "archived";
 
 export interface IdeaDto {
   id: string;

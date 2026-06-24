@@ -5,6 +5,8 @@ interface AuthResponse {
   refreshToken: string;
   workspaceId: string;
   userId: string;
+  email?: string;
+  displayName?: string;
   user?: {
     id: string;
     email: string;
@@ -18,6 +20,15 @@ export const authApi = {
     const data = res.data.data as AuthResponse;
     if (!data.user) {
       data.user = { id: data.userId, email };
+    }
+    return data;
+  },
+
+  googleLogin: async (accessToken: string): Promise<AuthResponse> => {
+    const res = await apiClient.post("/api/v1/auth/google-login", { accessToken });
+    const data = res.data.data as AuthResponse;
+    if (!data.user) {
+      data.user = { id: data.userId, email: data.email || "", displayName: data.displayName };
     }
     return data;
   },

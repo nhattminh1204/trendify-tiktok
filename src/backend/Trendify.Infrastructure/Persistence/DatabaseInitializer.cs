@@ -26,15 +26,7 @@ public sealed class DatabaseInitializer
         if (!canConnect)
             throw new InvalidOperationException("Cannot connect to PostgreSQL. Check connection string.");
 
-        // Check whether schema already exists (workspaces table is the anchor)
-        var exists = await SchemaExistsAsync(ct);
-        if (exists)
-        {
-            _logger.LogInformation("Database schema already exists — skipping initialization.");
-            return;
-        }
-
-        _logger.LogInformation("Applying initial database schema...");
+        _logger.LogInformation("Applying database migrations...");
 
         var sql = ReadEmbeddedSql();
         await _db.Database.ExecuteSqlRawAsync(sql, ct);

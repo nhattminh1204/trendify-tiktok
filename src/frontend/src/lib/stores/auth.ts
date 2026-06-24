@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist, type PersistStorage } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 
 interface User {
   id: string;
@@ -11,37 +11,15 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;
+  rememberMe: boolean;
+  status: string | null;
   setTokens: (accessToken: string, refreshToken: string) => void;
   setUser: (user: User) => void;
+  setRememberMe: (remember: boolean) => void;
+  markTokenExpired: () => void;
+  clearStatus: () => void;
   clear: () => void;
 }
-
-type PersistedAuthState = Pick<AuthState, "refreshToken" | "user">;
-
-const safeLocalStorage: PersistStorage<PersistedAuthState> = {
-  getItem: (name) => {
-    try {
-      const str = localStorage.getItem(name);
-      return str ? (JSON.parse(str) as { state: PersistedAuthState; version?: number }) : null;
-    } catch {
-      return null;
-    }
-  },
-  setItem: (name, value) => {
-    try {
-      localStorage.setItem(name, JSON.stringify(value));
-    } catch {
-      // noop in SSR
-    }
-  },
-  removeItem: (name) => {
-    try {
-      localStorage.removeItem(name);
-    } catch {
-      // noop in SSR
-    }
-  },
-};
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -49,19 +27,34 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       user: null,
+      rememberMe: true,
+      status: null,
       setTokens: (accessToken, refreshToken) =>
-        set({ accessToken, refreshToken }),
+        set({ accessToken, refreshToken, status: null }),
       setUser: (user) => set({ user }),
-      clear: () => set({ accessToken: null, refreshToken: null, user: null }),
+      setRememberMe: (remember) => set({ rememberMe: remember }),
+      markTokenExpired: () => set({ status: "token_expired" }),
+      clearStatus: () => set({ status: null }),
+      clear: () =>
+        set({
+          accessToken: null,
+          refreshToken: null,
+          user: null,
+          status: null,
+        }),
     }),
     {
       name: "trendify-auth",
-      storage: safeLocalStorage,
-      skipHydration: true,
-      partialize: (state) => ({
-        refreshToken: state.refreshToken,
-        user: state.user,
-      }),
+      partialize: (state) =>
+        state.rememberMe
+          ? {
+              accessToken: state.accessToken,
+              refreshToken: state.refreshToken,
+              user: state.user,
+              rememberMe: true,
+              status: state.status,
+            }
+          : { rememberMe: false },
     }
   )
 );

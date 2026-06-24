@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import {
   AreaChart,
   Area,
@@ -11,12 +11,23 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Lightbulb, Sparkles, Loader2 } from "lucide-react";
+import {
+  Lightbulb,
+  Sparkles,
+  Loader2,
+  Bookmark,
+  BookmarkCheck,
+  Pencil,
+  Check,
+  X,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiClient } from "@/lib/api/client";
+import { trendsApi } from "@/lib/api/trends";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -224,6 +235,41 @@ export default function TrendDetailPage() {
     enabled: !!id,
   });
 
+  const queryClient = useQueryClient();
+
+  const { data: watchlist } = useQuery({
+    queryKey: ["watchlist"],
+    queryFn: () => trendsApi.getWatchlist(),
+  });
+
+  const isWatched = (watchlist ?? []).some(
+    (w: { trendDetectionId: string }) => w.trendDetectionId === id
+  );
+  const watchlistItem = (watchlist ?? []).find(
+    (w: { trendDetectionId: string }) => w.trendDetectionId === id
+  );
+
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesDraft, setNotesDraft] = useState(watchlistItem?.notes ?? "");
+
+  const addMutation = useMutation({
+    mutationFn: () => trendsApi.addToWatchlist(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["watchlist"] }),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: () => trendsApi.removeFromWatchlist(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["watchlist"] }),
+  });
+
+  const notesMutation = useMutation({
+    mutationFn: (notes: string | null) => trendsApi.updateWatchlistNote(id, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["watchlist"] });
+      setEditingNotes(false);
+    },
+  });
+
   if (isLoading) return <TrendDetailSkeleton />;
 
   const trend = data ?? MOCK_DETAIL;
@@ -278,10 +324,29 @@ export default function TrendDetailPage() {
             </span>
           </div>
         </div>
-        <Button variant="primary" size="md">
-          <Lightbulb className="w-4 h-4" />
-          Create content from this trend →
-        </Button>
+        <div className="flex gap-2">
+          {/* Watch/Unwatch */}
+          <Button
+            variant={isWatched ? "secondary" : "ghost"}
+            size="md"
+            loading={addMutation.isPending || removeMutation.isPending}
+            onClick={() => {
+              if (isWatched) removeMutation.mutate();
+              else addMutation.mutate();
+            }}
+          >
+            {isWatched ? (
+              <><BookmarkCheck className="w-4 h-4" /> Watching</>
+            ) : (
+              <><Bookmark className="w-4 h-4" /> Watch</>
+            )}
+          </Button>
+
+          <Button variant="primary" size="md">
+            <Lightbulb className="w-4 h-4" />
+            Create content from this trend →
+          </Button>
+        </div>
       </div>
 
       {/* 3. Stats row */}
@@ -308,7 +373,65 @@ export default function TrendDetailPage() {
         />
       </div>
 
-      {/* 4. Score Breakdown */}
+      {/* 4. Watchlist Notes */}
+      {isWatched && (
+        <Card padding="md" variant="highlight">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <BookmarkCheck className="w-4 h-4 text-brand-600" />
+              <h2 className="text-[15px] font-semibold text-gray-900">Your Notes</h2>
+            </div>
+            {!editingNotes ? (
+              <button
+                onClick={() => {
+                  setNotesDraft(watchlistItem?.notes ?? "");
+                  setEditingNotes(true);
+                }}
+                className="flex items-center gap-1 text-[12px] text-gray-400 hover:text-brand-600 transition-colors"
+              >
+                <Pencil className="w-3 h-3" />
+                Edit
+              </button>
+            ) : (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setEditingNotes(false)}
+                  className="p-1 rounded hover:bg-gray-100 text-gray-400"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => notesMutation.mutate(notesDraft.trim() || null)}
+                  disabled={notesMutation.isPending}
+                  className="p-1 rounded hover:bg-gray-100 text-green-600"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {editingNotes ? (
+            <textarea
+              value={notesDraft}
+              onChange={(e) => setNotesDraft(e.target.value)}
+              placeholder="Add your notes about this trend…"
+              rows={3}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 resize-y focus:outline-none focus:border-brand-500 focus:ring-[3px] focus:ring-brand-500/20 transition-all"
+            />
+          ) : watchlistItem?.notes ? (
+            <p className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">
+              {watchlistItem.notes}
+            </p>
+          ) : (
+            <p className="text-[13px] text-gray-400 italic">
+              No notes yet. Click Edit to add your thoughts on this trend.
+            </p>
+          )}
+        </Card>
+      )}
+
+      {/* 5. Score Breakdown */}
       <Card padding="md">
         <h2 className="text-[16px] font-semibold text-gray-900 mb-4">
           Score Breakdown
@@ -337,7 +460,7 @@ export default function TrendDetailPage() {
         </div>
       </Card>
 
-      {/* 5. Trend Timeline Chart */}
+      {/* 6. Trend Timeline Chart */}
       <Card padding="md">
         <h2 className="text-[16px] font-semibold text-gray-900 mb-4">
           Score History (7 days)
@@ -379,7 +502,7 @@ export default function TrendDetailPage() {
         </ResponsiveContainer>
       </Card>
 
-      {/* 6. Bottom row: Related Hashtags + AI Insights */}
+      {/* 7. Bottom row: Related Hashtags + AI Insights */}
       <div
         className="grid gap-4"
         style={{ gridTemplateColumns: "60% 1fr" }}

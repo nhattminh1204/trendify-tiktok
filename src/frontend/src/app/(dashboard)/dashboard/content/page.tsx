@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Lightbulb, Plus, Sparkles, CheckCircle } from "lucide-react";
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { Lightbulb, Plus, Sparkles, CheckCircle, ArrowRight } from "lucide-react";
 import {
   Badge,
   Button,
@@ -9,15 +10,16 @@ import {
   Input,
   Select,
   EmptyState,
-  Skeleton,
 } from "@/components/ui";
+import { BoardPipeline, MiniPipeline } from "@/components/content/pipeline-stepper";
+import type { StageKey } from "@/components/content/pipeline-stepper";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type IdeaStatus = "draft" | "approved" | "scheduled" | "published" | "archived";
+type IdeaStatus = StageKey | "archived";
 
 interface Idea {
   id: string;
@@ -33,14 +35,21 @@ interface Idea {
 // Constants
 // ---------------------------------------------------------------------------
 
-const TABS: Array<{ value: IdeaStatus | "all"; label: string }> = [
-  { value: "all",       label: "All" },
-  { value: "draft",     label: "Draft" },
-  { value: "approved",  label: "Approved" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "published", label: "Published" },
-  { value: "archived",  label: "Archived" },
+const PIPELINE_STAGES: StageKey[] = [
+  "draft",
+  "approved",
+  "ready",
+  "in_production",
+  "published",
 ];
+
+const STAGE_LABELS: Record<StageKey, string> = {
+  draft: "Draft",
+  approved: "Approved",
+  ready: "Ready",
+  in_production: "In Production",
+  published: "Published",
+};
 
 const NICHES = ["Fitness", "Cooking", "Tech", "Beauty", "Finance"];
 
@@ -69,9 +78,8 @@ const MOCK_IDEAS: Idea[] = [
     id: "3",
     title: "Hidden iPhone Settings That Will Change How You Use Your Phone",
     niche: "Tech",
-    status: "scheduled",
+    status: "in_production",
     aiGenerated: true,
-    scheduledAt: "2026-06-25T10:00:00Z",
   },
   {
     id: "4",
@@ -89,15 +97,23 @@ const MOCK_IDEAS: Idea[] = [
     status: "archived",
     aiGenerated: true,
   },
+  {
+    id: "6",
+    title: "10 Minute Home Workout That Beats The Gym",
+    niche: "Fitness",
+    hook: "No equipment. No excuses. Just results.",
+    status: "draft",
+    aiGenerated: true,
+  },
 ];
 
 // ---------------------------------------------------------------------------
-// Component
+// Page
 // ---------------------------------------------------------------------------
 
 export default function ContentPage() {
   const [showForm, setShowForm] = useState(false);
-  const [activeTab, setActiveTab] = useState<IdeaStatus | "all">("all");
+  const [activeStage, setActiveStage] = useState<StageKey | "all">("all");
   const [ideas, setIdeas] = useState<Idea[]>(MOCK_IDEAS);
   const [isLoading] = useState(false);
 
@@ -107,16 +123,30 @@ export default function ContentPage() {
   const [formHook, setFormHook] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
-  // ---------------------------------------------------------------------------
-  // Handlers
-  // ---------------------------------------------------------------------------
+  // ── Derived ──────────────────────────────────────────────────────────────
+
+  const stageCounts = useMemo(() => {
+    return PIPELINE_STAGES.map((key) => ({
+      key,
+      count: ideas.filter((i) => i.status === key).length,
+    }));
+  }, [ideas]);
+
+  const filteredIdeas = useMemo(() => {
+    if (activeStage === "all") {
+      return ideas.filter((i) => i.status !== "archived");
+    }
+    return ideas.filter((i) => i.status === activeStage);
+  }, [ideas, activeStage]);
+
+  const archivedCount = ideas.filter((i) => i.status === "archived").length;
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleCreate = async () => {
     if (!formTitle.trim()) return;
     setIsCreating(true);
     try {
-      // API call (mock fallback)
-      // await apiClient.post("/api/v1/content/ideas", { title: formTitle, niche: formNiche, hook: formHook });
       const newIdea: Idea = {
         id: String(Date.now()),
         title: formTitle.trim(),
@@ -130,38 +160,25 @@ export default function ContentPage() {
       setFormTitle("");
       setFormHook("");
       setFormNiche("Fitness");
-    } catch {
-      // silently ignore in mock mode
+      setActiveStage("draft");
     } finally {
       setIsCreating(false);
     }
   };
 
   const handleApprove = async (id: string) => {
-    try {
-      // await apiClient.post(`/api/v1/content/ideas/${id}/approve`);
-      setIdeas((prev) =>
-        prev.map((idea) =>
-          idea.id === id ? { ...idea, status: "approved" as IdeaStatus } : idea
-        )
-      );
-    } catch {
-      // silently ignore in mock mode
-    }
+    setIdeas((prev) =>
+      prev.map((idea) =>
+        idea.id === id ? { ...idea, status: "approved" as IdeaStatus } : idea
+      )
+    );
   };
 
-  // ---------------------------------------------------------------------------
-  // Derived data
-  // ---------------------------------------------------------------------------
+  const handleStageClick = (stage: StageKey | "all") => {
+    setActiveStage(stage);
+  };
 
-  const filteredIdeas =
-    activeTab === "all"
-      ? ideas
-      : ideas.filter((idea) => idea.status === activeTab);
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col gap-5">
@@ -174,17 +191,16 @@ export default function ContentPage() {
             <h1 className="text-[24px] font-bold text-gray-900">Content Ideas</h1>
           </div>
           <p className="text-[14px] text-gray-500 mt-1">
-            Manage your content pipeline from idea to publish.
+            Theo dõi nội dung của bạn từ ý tưởng đến xuất bản.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ai"
-            onClick={() => {}}
-          >
-            <Sparkles className="w-4 h-4" />
-            AI Generate
-          </Button>
+          <Link href="/dashboard/content/generate">
+            <Button variant="ai">
+              <Sparkles className="w-4 h-4" />
+              AI Generate
+            </Button>
+          </Link>
           <Button
             variant="primary"
             onClick={() => setShowForm((v) => !v)}
@@ -243,35 +259,60 @@ export default function ContentPage() {
         </Card>
       )}
 
-      {/* 3. Segmented Tabs */}
-      <div className="bg-gray-100 rounded-xl p-1 inline-flex gap-1 flex-wrap">
-        {TABS.map(({ value, label }) => (
+      {/* 3. Pipeline Overview */}
+      <Card className="bg-white border-gray-200">
+        <BoardPipeline
+          stages={stageCounts}
+          activeStage={activeStage}
+          onStageClick={handleStageClick}
+        />
+      </Card>
+
+      {/* 4. Section Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-[15px] font-semibold text-gray-900">
+          {activeStage === "all"
+            ? "Tất cả nội dung"
+            : STAGE_LABELS[activeStage]}
+          <span className="text-gray-400 font-normal ml-1">
+            ({filteredIdeas.length})
+          </span>
+        </h2>
+
+        {/* Stage-appropriate action */}
+        {activeStage === "draft" && (
+          <Link href="/dashboard/content/generate">
+            <Button variant="ai" size="sm">
+              <Sparkles className="w-3.5 h-3.5" />
+              Tạo bằng AI
+            </Button>
+          </Link>
+        )}
+        {activeStage === "all" && archivedCount > 0 && (
           <button
-            key={value}
-            onClick={() => setActiveTab(value)}
-            className={cn(
-              "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-colors",
-              activeTab === value
-                ? "bg-white shadow-sm text-gray-900"
-                : "text-gray-500 hover:text-gray-700"
-            )}
+            onClick={() => handleStageClick("archived" as any)}
+            className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
           >
-            {label}
+            Xem lưu trữ ({archivedCount})
           </button>
-        ))}
+        )}
       </div>
 
-      {/* 4. Ideas List */}
+      {/* 5. Ideas List */}
       {isLoading ? (
         <div className="flex flex-col gap-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : filteredIdeas.length === 0 ? (
         <EmptyState
           icon={Lightbulb}
-          title="No ideas yet. Create your first one above."
+          title={
+            activeStage === "all"
+              ? "Chưa có ý tưởng nào."
+              : `Chưa có ý tưởng nào ở giai đoạn "${STAGE_LABELS[activeStage as StageKey]}".`
+          }
         />
       ) : (
         <div className="flex flex-col gap-3">
@@ -289,7 +330,7 @@ export default function ContentPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Idea Card sub-component
+// Idea Card
 // ---------------------------------------------------------------------------
 
 function IdeaCard({
@@ -307,56 +348,89 @@ function IdeaCard({
     setApproving(false);
   };
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex gap-4 hover:border-gray-300 cursor-pointer transition-colors">
-      {/* Left */}
-      <div className="flex-1 min-w-0">
-        {/* Badge row */}
-        <div className="flex gap-1.5 flex-wrap items-center mb-1.5">
-          <Badge variant={idea.status}>{idea.status}</Badge>
-          <span className="text-[13px] text-gray-400">{idea.niche}</span>
-          {idea.aiGenerated && (
-            <Badge variant="ai">AI</Badge>
-          )}
-          {idea.status === "scheduled" && idea.scheduledAt && (
-            <Badge variant="scheduled">
-              {new Date(idea.scheduledAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}
-            </Badge>
-          )}
-        </div>
-        {/* Title */}
-        <p className="text-[14px] font-medium text-gray-900">{idea.title}</p>
-        {/* Hook */}
-        {idea.hook && (
-          <p className="text-[13px] italic text-gray-500 mt-1 truncate">
-            &ldquo;{idea.hook}&rdquo;
-          </p>
-        )}
-      </div>
+  const isArchived = idea.status === "archived";
+  const stage = (isArchived ? "draft" : idea.status) as StageKey;
 
-      {/* Right — Approve button (draft only) */}
-      {idea.status === "draft" && (
-        <div className="flex-shrink-0 self-center">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleApprove();
-            }}
-            disabled={approving}
-            className={cn(
-              "flex items-center gap-1.5 h-8 px-3 text-[13px] font-medium rounded-lg",
-              "border border-green-300 text-green-700 hover:bg-green-50",
-              "transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+  return (
+    <Link href={`/dashboard/content/${idea.id}`}>
+      <Card
+        variant="interactive"
+        className={cn(isArchived && "opacity-60")}
+      >
+        <div className="flex gap-4">
+          {/* Left */}
+          <div className="flex-1 min-w-0">
+            {/* Badge row */}
+            <div className="flex gap-1.5 flex-wrap items-center mb-1.5">
+              <Badge variant={idea.status}>{idea.status}</Badge>
+              <span className="text-[13px] text-gray-400">{idea.niche}</span>
+              {idea.aiGenerated && (
+                <Badge variant="ai">AI</Badge>
+              )}
+              {idea.status === "in_production" && idea.scheduledAt && (
+                <Badge variant="scheduled">
+                  {new Date(idea.scheduledAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </Badge>
+              )}
+            </div>
+
+            {/* Title */}
+            <p className="text-[14px] font-medium text-gray-900">{idea.title}</p>
+
+            {/* Hook */}
+            {idea.hook && (
+              <p className="text-[13px] italic text-gray-500 mt-1 truncate">
+                &ldquo;{idea.hook}&rdquo;
+              </p>
             )}
-          >
-            <CheckCircle className="w-3.5 h-3.5" />
-            Approve
-          </button>
+
+            {/* Mini Pipeline Progress */}
+            {!isArchived && (
+              <div className="mt-2.5 max-w-[280px]">
+                <MiniPipeline status={stage} />
+              </div>
+            )}
+          </div>
+
+          {/* Right — Action */}
+          {idea.status === "draft" && (
+            <div className="flex-shrink-0 self-center">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleApprove();
+                }}
+                disabled={approving}
+                className={cn(
+                  "flex items-center gap-1.5 h-8 px-3 text-[13px] font-medium rounded-lg",
+                  "border border-green-300 text-green-700 hover:bg-green-50",
+                  "transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                <CheckCircle className="w-3.5 h-3.5" />
+                Approve
+              </button>
+            </div>
+          )}
+
+          {idea.status === "approved" && (
+            <div className="flex-shrink-0 self-center">
+              <Link
+                href={`/dashboard/content/${idea.id}/media`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 h-8 px-3 text-[13px] font-medium rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors"
+              >
+                Tiếp tục
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </Card>
+    </Link>
   );
 }

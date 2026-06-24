@@ -52,7 +52,8 @@ public static class ServiceCollectionExtensions
             {
                 npgsql.EnableRetryOnFailure(3);
                 npgsql.CommandTimeout(30);
-            }));
+            })
+            .UseSnakeCaseNamingConvention());
 
         return services;
     }

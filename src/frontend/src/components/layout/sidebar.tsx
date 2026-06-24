@@ -1,23 +1,14 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/stores/auth";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Users,
-  Lightbulb,
-  BarChart3,
-  GraduationCap,
-  Zap,
-  Settings,
-  LogOut,
-  Clapperboard,
-  Bot,
-  Film,
-  MonitorPlay,
+  LayoutDashboard, TrendingUp, Users, Lightbulb,
+  BarChart3, GraduationCap, Zap, Settings, LogOut,
+  Clapperboard, Bot, Film, MonitorPlay,
 } from "lucide-react";
 
 const navItems = [
@@ -45,7 +36,7 @@ function getInitials(name?: string, email?: string) {
     .toUpperCase();
 }
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, clear } = useAuthStore();
@@ -56,15 +47,15 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 h-screen fixed left-0 top-0 flex flex-col bg-white border-r border-gray-200 z-20">
+    <aside className="w-64 h-screen fixed left-0 top-0 flex flex-col bg-white dark:bg-surface-dark border-r border-gray-200 dark:border-gray-700/50 z-20 transition-colors duration-200">
       {/* Logo */}
-      <div className="px-5 py-6 border-b border-gray-100 flex items-center gap-2.5">
+      <div className="px-5 py-6 border-b border-gray-100 dark:border-gray-700/50 flex items-center gap-2.5">
         <div className="w-5 h-5 rounded bg-brand-600 flex items-center justify-center">
           <Zap className="w-3 h-3 text-white" strokeWidth={2.5} />
         </div>
         <div>
-          <p className="text-[20px] font-bold text-gray-900 leading-none">Trendify</p>
-          <p className="text-[12px] text-gray-500 mt-0.5">Creator OS</p>
+          <p className="text-[20px] font-bold text-gray-900 dark:text-gray-100 leading-none">Trendify</p>
+          <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">Creator OS</p>
         </div>
       </div>
 
@@ -82,12 +73,12 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150",
                 active
-                  ? "bg-brand-50 text-brand-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
               )}
             >
               <Icon
-                className={cn("w-4 h-4 flex-shrink-0", active ? "text-brand-600" : "text-gray-400")}
+                className={cn("w-4 h-4 flex-shrink-0", active ? "text-brand-600 dark:text-brand-400" : "text-gray-400 dark:text-gray-500")}
                 strokeWidth={1.75}
               />
               {label}
@@ -95,9 +86,9 @@ export function Sidebar() {
           );
         })}
 
-        <div className="my-2 mx-3 h-px bg-gray-100" />
+        <div className="my-2 mx-3 h-px bg-gray-100 dark:bg-gray-700/50" />
 
-        <p className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+        <p className="px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
           Studio
         </p>
 
@@ -110,12 +101,12 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150",
                 active
-                  ? "bg-brand-50 text-brand-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
               )}
             >
               <Icon
-                className={cn("w-4 h-4 flex-shrink-0", active ? "text-brand-600" : "text-gray-400")}
+                className={cn("w-4 h-4 flex-shrink-0", active ? "text-brand-600 dark:text-brand-400" : "text-gray-400 dark:text-gray-500")}
                 strokeWidth={1.75}
               />
               {label}
@@ -123,21 +114,21 @@ export function Sidebar() {
           );
         })}
 
-        <div className="my-2 mx-3 h-px bg-gray-100" />
+        <div className="my-2 mx-3 h-px bg-gray-100 dark:bg-gray-700/50" />
 
         <Link
           href="/settings/account"
           className={cn(
             "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150",
             pathname.startsWith("/settings")
-              ? "bg-brand-50 text-brand-700"
-              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+              ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400"
+              : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
           )}
         >
           <Settings
             className={cn(
               "w-4 h-4 flex-shrink-0",
-              pathname.startsWith("/settings") ? "text-brand-600" : "text-gray-400"
+              pathname.startsWith("/settings") ? "text-brand-600 dark:text-brand-400" : "text-gray-400 dark:text-gray-500"
             )}
             strokeWidth={1.75}
           />
@@ -146,24 +137,24 @@ export function Sidebar() {
       </nav>
 
       {/* User block */}
-      <div className="px-3 py-3 border-t border-gray-100 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-[12px] font-semibold text-brand-700 flex-shrink-0">
+      <div className="px-3 py-3 border-t border-gray-100 dark:border-gray-700/50 flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-[12px] font-semibold text-brand-700 dark:text-brand-400 flex-shrink-0">
           {getInitials(user?.displayName, user?.email)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
             {user?.displayName ?? "Creator"}
           </p>
-          <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
         </div>
         <button
           onClick={handleLogout}
           title="Sign out"
-          className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded flex-shrink-0"
+          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded flex-shrink-0"
         >
           <LogOut className="w-4 h-4" />
         </button>
       </div>
     </aside>
   );
-}
+});

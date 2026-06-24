@@ -23,6 +23,7 @@ public static class TrendsModule
         services.AddScoped<ITrendsRepository, TrendsRepository>();
         services.AddScoped<TrendScoringService>();
         services.AddScoped<TrendScanJob>();
+        services.AddScoped<CompetitorScanJob>();
 
         return services;
     }

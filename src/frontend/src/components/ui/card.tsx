@@ -9,11 +9,11 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<CardVariant, string> = {
-  default:     "bg-white border border-gray-200",
-  interactive: "bg-white border border-gray-200 hover:border-brand-400 cursor-pointer transition-colors duration-150",
-  highlight:   "bg-violet-50 border border-violet-200",
-  warning:     "bg-amber-50 border border-amber-200",
-  danger:      "bg-red-50 border border-red-200",
+  default:     "bg-white border border-gray-200 dark:bg-surface-dark-secondary dark:border-gray-700/50",
+  interactive: "bg-white border border-gray-200 dark:bg-surface-dark-secondary dark:border-gray-700/50 hover:border-brand-400 dark:hover:border-brand-500 cursor-pointer transition-colors duration-150",
+  highlight:   "bg-violet-50 border border-violet-200 dark:bg-violet-900/20 dark:border-violet-800/30",
+  warning:     "bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/30",
+  danger:      "bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800/30",
 };
 
 const paddingClasses = {

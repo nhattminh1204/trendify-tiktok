@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -21,6 +22,14 @@ const config: Config = {
           "800": "#3730A3",
           "900": "#312E81",
         },
+        surface: {
+          DEFAULT: "#ffffff",
+          secondary: "#f9fafb",
+          tertiary: "#f3f4f6",
+          dark: "#0f1117",
+          "dark-secondary": "#1a1d2e",
+          "dark-tertiary": "#25283d",
+        },
       },
       fontFamily: {
         sans: ["Inter", "var(--font-inter)", "sans-serif"],
@@ -29,6 +38,7 @@ const config: Config = {
         card: "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
         elevated: "0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06)",
         focused: "0 0 0 3px rgba(99,102,241,0.2)",
+        "dark-card": "0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)",
       },
       borderRadius: {
         card: "12px",

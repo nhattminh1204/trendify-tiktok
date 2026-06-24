@@ -35,7 +35,8 @@ public class AppDbContext : DbContext
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Property("TenantId").CurrentValue = _currentUser.TenantId;
+                if (_currentUser.IsAuthenticated)
+                    entry.Property("TenantId").CurrentValue = _currentUser.TenantId;
                 entry.Property("CreatedAt").CurrentValue = DateTimeOffset.UtcNow;
                 entry.Property("UpdatedAt").CurrentValue = DateTimeOffset.UtcNow;
             }

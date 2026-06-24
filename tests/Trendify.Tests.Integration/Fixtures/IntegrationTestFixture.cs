@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Trendify.Infrastructure.Persistence;
+using Xunit;
 
 namespace Trendify.Tests.Integration.Fixtures;
 

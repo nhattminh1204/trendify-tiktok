@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Trendify.Modules.Accounts.Application.Commands.Login;
+using Trendify.Modules.Accounts.Application.Commands.Logout;
 using Trendify.Modules.Accounts.Application.Commands.RefreshToken;
 using Trendify.Modules.Accounts.Application.Commands.RegisterWorkspace;
 
@@ -67,12 +68,30 @@ public sealed class AuthEndpoints : ICarterModule
         .Produces(401)
         .AllowAnonymous();
 
-        group.MapPost("/logout", (
+        group.MapPost("/google-login", async (
+            GoogleLoginCommand command,
+            IValidator<GoogleLoginCommand> validator,
             ISender sender,
-            HttpContext context,
             CancellationToken ct) =>
         {
-            // Clear refresh token from DB via a command (simplified here)
+            var validation = await validator.ValidateAsync(command, ct);
+            if (!validation.IsValid)
+                return Results.UnprocessableEntity(validation.Errors
+                    .Select(e => new { field = e.PropertyName, message = e.ErrorMessage }));
+
+            var result = await sender.Send(command, ct);
+            return Results.Ok(result);
+        })
+        .WithName("GoogleLogin")
+        .Produces(200)
+        .Produces(401)
+        .AllowAnonymous();
+
+        group.MapPost("/logout", async (
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            await sender.Send(new LogoutCommand(), ct);
             return Results.NoContent();
         })
         .WithName("Logout")

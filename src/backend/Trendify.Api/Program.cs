@@ -21,7 +21,9 @@ using Trendify.Modules.Audience;
 using Trendify.Modules.Audience.Jobs;
 using Trendify.Modules.Content;
 using Trendify.Modules.Learning;
+using Trendify.Modules.Products;
 using Trendify.Modules.Trends;
+using Trendify.Modules.Trends.Jobs;
 
 // ─── Serilog bootstrap ───────────────────────────────────────────────────────
 
@@ -65,6 +67,7 @@ try
     builder.Services.AddContentModule(builder.Configuration);
     builder.Services.AddAnalyticsModule(builder.Configuration);
     builder.Services.AddLearningModule(builder.Configuration);
+    builder.Services.AddProductsModule(builder.Configuration);
     builder.Services.AddAIEngineModule(builder.Configuration);
 
     // ─── Carter (Minimal API endpoint registration) ───────────────────────────
@@ -156,25 +159,37 @@ try
     }
 
     // ─── Hangfire Recurring Jobs ─────────────────────────────────────────────
-    RecurringJob.AddOrUpdate<Trendify.Infrastructure.Outbox.OutboxProcessor>(
+    var jobs = app.Services.GetRequiredService<IRecurringJobManager>();
+
+    jobs.AddOrUpdate<Trendify.Infrastructure.Outbox.OutboxProcessor>(
         "outbox-processor",
         job => job.ProcessAsync(CancellationToken.None),
         "*/10 * * * * *");  // every 10 seconds
 
-    RecurringJob.AddOrUpdate<TikTokTokenRefreshJob>(
+    jobs.AddOrUpdate<TikTokTokenRefreshJob>(
         "tiktok-token-refresh",
         job => job.RunAsync(CancellationToken.None),
         "0 */30 * * * *");  // every 30 minutes
 
-    RecurringJob.AddOrUpdate<AudienceSyncJob>(
+    jobs.AddOrUpdate<AudienceSyncJob>(
         "audience-sync",
         job => job.RunAsync(CancellationToken.None),
         "0 0 */6 * * *");   // every 6 hours
 
-    RecurringJob.AddOrUpdate<AnalyticsSyncJob>(
+    jobs.AddOrUpdate<AnalyticsSyncJob>(
         "analytics-sync",
         job => job.RunAsync(CancellationToken.None),
         "0 0 */3 * * *");   // every 3 hours
+
+    jobs.AddOrUpdate<TrendScanJob>(
+        "trend-scan",
+        job => job.RunAsync(CancellationToken.None),
+        "0 */2 * * *");   // every 2 hours
+
+    jobs.AddOrUpdate<CompetitorScanJob>(
+        "competitor-scan",
+        job => job.RunAsync(CancellationToken.None),
+        "0 0 */6 * *");   // every 6 hours
 
     // ─── OpenAPI / Scalar ─────────────────────────────────────────────────────
     if (app.Environment.IsDevelopment())

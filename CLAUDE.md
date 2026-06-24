@@ -44,7 +44,7 @@ Do NOT scan the entire repository. Minimize token usage.
 
 | Layer | Technology |
 |---|---|
-| Backend | .NET 9 |
+| Backend | .NET 8 |
 | Frontend | Next.js + TypeScript |
 | Database | PostgreSQL |
 | Cache | Redis |

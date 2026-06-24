@@ -29,11 +29,11 @@ const TABS = ["All", "Unread", "Trends", "AI", "System"] as const;
 type Tab = typeof TABS[number];
 
 const typeConfig: Record<NotifType, { icon: typeof TrendingUp; bg: string; iconClass: string }> = {
-  trend:          { icon: TrendingUp, bg: "bg-blue-50",   iconClass: "text-blue-500" },
-  ai:             { icon: Zap,        bg: "bg-violet-50", iconClass: "text-violet-500" },
-  budget:         { icon: DollarSign, bg: "bg-amber-50",  iconClass: "text-amber-500" },
-  recommendation: { icon: Lightbulb,  bg: "bg-amber-50",  iconClass: "text-amber-500" },
-  system:         { icon: Info,        bg: "bg-gray-100",  iconClass: "text-gray-400" },
+  trend:          { icon: TrendingUp, bg: "bg-blue-50 dark:bg-blue-900/30",   iconClass: "text-blue-500 dark:text-blue-400" },
+  ai:             { icon: Zap,        bg: "bg-violet-50 dark:bg-violet-900/30", iconClass: "text-violet-500 dark:text-violet-400" },
+  budget:         { icon: DollarSign, bg: "bg-amber-50 dark:bg-amber-900/30",  iconClass: "text-amber-500 dark:text-amber-400" },
+  recommendation: { icon: Lightbulb,  bg: "bg-amber-50 dark:bg-amber-900/30",  iconClass: "text-amber-500 dark:text-amber-400" },
+  system:         { icon: Info,        bg: "bg-gray-100 dark:bg-gray-800",  iconClass: "text-gray-400 dark:text-gray-500" },
 };
 
 function tabFilter(tab: Tab, n: Notification): boolean {
@@ -71,10 +71,10 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
       />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 bottom-0 z-40 w-[400px] bg-white shadow-elevated flex flex-col rounded-l-2xl">
+      <div className="fixed right-0 top-0 bottom-0 z-40 w-[400px] bg-white dark:bg-surface-dark shadow-elevated flex flex-col rounded-l-2xl transition-colors duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-900">Notifications</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700/50">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Notifications</h2>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
               <button
@@ -86,7 +86,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
             )}
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="p-1 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -94,7 +94,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex border-b border-gray-100 px-4">
+        <div className="flex border-b border-gray-100 dark:border-gray-700/50 px-4">
           {TABS.map((t) => (
             <button
               key={t}
@@ -102,8 +102,8 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
               className={cn(
                 "px-3 py-2 text-[13px] font-medium transition-colors",
                 tab === t
-                  ? "border-b-2 border-brand-600 text-brand-700"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "border-b-2 border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-400"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               )}
             >
               {t}
@@ -115,8 +115,8 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
         <div className="flex-1 overflow-y-auto">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-              <BellOff className="w-10 h-10 text-gray-300 mb-3" />
-              <p className="text-sm text-gray-400">No {tab !== "All" ? tab.toLowerCase() + " " : ""}notifications yet.</p>
+              <BellOff className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-3" />
+              <p className="text-sm text-gray-400 dark:text-gray-500">No {tab !== "All" ? tab.toLowerCase() + " " : ""}notifications yet.</p>
             </div>
           ) : (
             filtered.map((n) => {
@@ -125,8 +125,8 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
                 <div
                   key={n.id}
                   className={cn(
-                    "flex gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors",
-                    !n.read && "border-l-[3px] border-l-brand-500 bg-brand-50/30"
+                    "flex gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-700/30 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors",
+                    !n.read && "border-l-[3px] border-l-brand-500 bg-brand-50/30 dark:bg-brand-900/20"
                   )}
                   onClick={() => {
                     setNotifications((prev) =>
@@ -146,12 +146,12 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className={cn("text-sm text-gray-900", !n.read && "font-medium")}>
+                      <p className={cn("text-sm text-gray-900 dark:text-gray-100", !n.read && "font-medium")}>
                         {n.title}
                       </p>
-                      <span className="text-[11px] text-gray-400 flex-shrink-0 mt-0.5">{n.timestamp}</span>
+                      <span className="text-[11px] text-gray-400 dark:text-gray-500 flex-shrink-0 mt-0.5">{n.timestamp}</span>
                     </div>
-                    <p className="text-[13px] text-gray-600 mt-0.5 line-clamp-2">{n.body}</p>
+                    <p className="text-[13px] text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">{n.body}</p>
                     {n.action && (
                       <a
                         href={n.action.href}

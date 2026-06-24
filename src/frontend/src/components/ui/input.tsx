@@ -5,7 +5,7 @@ import { InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, forw
 import { ChevronDown } from "lucide-react";
 
 const inputBase =
-  "w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder-gray-400 transition-colors duration-150 focus:outline-none focus:border-brand-500 focus:shadow-focused disabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70";
+  "w-full h-9 rounded-lg border border-gray-300 bg-white dark:border-gray-600 dark:bg-surface-dark-tertiary px-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors duration-150 focus:outline-none focus:border-brand-500 focus:shadow-focused disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-70";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
+          <label htmlFor={inputId} className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
           </label>
         )}
@@ -28,7 +28,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={cn(inputBase, error && "border-red-500", className)}
           {...props}
         />
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     );
   }

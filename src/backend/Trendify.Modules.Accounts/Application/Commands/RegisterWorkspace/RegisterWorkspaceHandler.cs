@@ -42,7 +42,7 @@ internal sealed class RegisterWorkspaceHandler
 
         var accessToken = _jwtService.GenerateAccessToken(user.Id, workspace.Id, user.Email, user.Role);
         var refreshToken = _jwtService.GenerateRefreshToken();
-        user.SetRefreshToken(refreshToken, 7);
+        user.SetRefreshToken(refreshToken, _jwtService.RefreshTokenTtlDays);
 
         await _repository.CreateWorkspaceAsync(workspace, user, ct);
 
@@ -53,7 +53,7 @@ internal sealed class RegisterWorkspaceHandler
             user.Id,
             accessToken,
             refreshToken,
-            user.RefreshTokenExpiresAt!.Value
+            user.LatestRefreshTokenExpiresAt!.Value
         ));
     }
 

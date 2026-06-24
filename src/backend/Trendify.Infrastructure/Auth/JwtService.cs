@@ -58,6 +58,8 @@ public sealed class JwtService
         return Convert.ToBase64String(bytes);
     }
 
+    public int RefreshTokenTtlDays => _options.RefreshTokenTtlDays;
+
     public ClaimsPrincipal? ValidateAccessToken(string token)
     {
         var handler = new JwtSecurityTokenHandler();
