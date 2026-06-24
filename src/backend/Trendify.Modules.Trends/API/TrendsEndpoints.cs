@@ -26,15 +26,15 @@ public sealed class TrendsEndpoints : ICarterModule
 
         // Watchlist
         grp.MapGet("/watchlist", GetWatchlist)
-            .WithName("GetWatchlist")
+            .WithName("GetTrendsWatchlist")
             .WithTags("Trends Watchlist");
 
         grp.MapPost("/{id:guid}/watch", AddToWatchlist)
-            .WithName("AddToWatchlist")
+            .WithName("AddTrendToWatchlist")
             .WithTags("Trends Watchlist");
 
         grp.MapDelete("/{id:guid}/watch", RemoveFromWatchlist)
-            .WithName("RemoveFromWatchlist")
+            .WithName("RemoveTrendFromWatchlist")
             .WithTags("Trends Watchlist");
 
         grp.MapPatch("/{id:guid}/watch/notes", UpdateWatchlistNote)

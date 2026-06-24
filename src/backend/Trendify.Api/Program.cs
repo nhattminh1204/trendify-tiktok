@@ -128,6 +128,10 @@ try
 
     // ─── Middleware Pipeline ──────────────────────────────────────────────────
     app.UseMiddleware<CorrelationIdMiddleware>();
+
+    // CORS must run before ExceptionHandlingMiddleware so error responses include CORS headers
+    app.UseCors();
+
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
     app.UseSerilogRequestLogging(options =>
@@ -136,7 +140,6 @@ try
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms";
     });
 
-    app.UseCors();
     app.UseSession();
     app.UseAuthentication();
     app.UseAuthorization();

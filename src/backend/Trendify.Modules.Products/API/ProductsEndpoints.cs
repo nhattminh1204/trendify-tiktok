@@ -39,15 +39,15 @@ public sealed class ProductsEndpoints : ICarterModule
 
         // Watchlist
         grp.MapGet("/watchlist", GetWatchlist)
-            .WithName("GetWatchlist")
+            .WithName("GetProductsWatchlist")
             .WithTags("Products");
 
         grp.MapPost("/watchlist", AddToWatchlist)
-            .WithName("AddToWatchlist")
+            .WithName("AddProductToWatchlist")
             .WithTags("Products");
 
         grp.MapDelete("/watchlist/{productId:guid}", RemoveFromWatchlist)
-            .WithName("RemoveFromWatchlist")
+            .WithName("RemoveProductFromWatchlist")
             .WithTags("Products");
 
         // Metrics

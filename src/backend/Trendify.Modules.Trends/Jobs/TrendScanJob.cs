@@ -7,7 +7,7 @@ using Trendify.Modules.Trends.Application.Events;
 using Trendify.Modules.Trends.Application.Services;
 using Trendify.Modules.Trends.Domain;
 using Trendify.Modules.Trends.Infrastructure;
-using Trendify.Shared.Events;
+using Trendify.Shared.Abstractions;
 
 namespace Trendify.Modules.Trends.Jobs;
 

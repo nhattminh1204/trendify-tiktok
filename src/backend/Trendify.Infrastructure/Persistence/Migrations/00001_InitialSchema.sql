@@ -305,6 +305,27 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
 
 -- ============================================================
+-- user_refresh_tokens table (multi-device sessions)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS user_refresh_tokens (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tenant_id       UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    token           VARCHAR(500) NOT NULL,
+    expires_at      TIMESTAMPTZ NOT NULL,
+    revoked_at      TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at      TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_refresh_tokens_user_id ON user_refresh_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_refresh_tokens_revoked_at ON user_refresh_tokens(revoked_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_refresh_tokens_token ON user_refresh_tokens(token);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(50);
+
+-- ============================================================
 -- Infrastructure: Outbox pattern
 -- ============================================================
 CREATE TABLE IF NOT EXISTS outbox_messages (
