@@ -24,6 +24,8 @@ using Trendify.Modules.Learning;
 using Trendify.Modules.Products;
 using Trendify.Modules.Trends;
 using Trendify.Modules.Trends.Jobs;
+using Trendify.Modules.VideoEngine;
+using Trendify.Modules.VideoEngine.Jobs;
 
 // ─── Serilog bootstrap ───────────────────────────────────────────────────────
 
@@ -69,6 +71,7 @@ try
     builder.Services.AddLearningModule(builder.Configuration);
     builder.Services.AddProductsModule(builder.Configuration);
     builder.Services.AddAIEngineModule(builder.Configuration);
+    builder.Services.AddVideoEngineModule(builder.Configuration);
 
     // ─── Carter (Minimal API endpoint registration) ───────────────────────────
     builder.Services.AddCarter();
@@ -193,6 +196,13 @@ try
         "competitor-scan",
         job => job.RunAsync(CancellationToken.None),
         "0 0 */6 * *");   // every 6 hours
+
+    // Video Engine is triggered by queue, not schedule.
+    // StaleJobCleanupJob runs every hour to catch crashed workers.
+    jobs.AddOrUpdate<StaleJobCleanupJob>(
+        "video-engine-stale-cleanup",
+        job => job.RunAsync(CancellationToken.None),
+        "0 * * * *");   // every hour
 
     // ─── OpenAPI / Scalar ─────────────────────────────────────────────────────
     if (app.Environment.IsDevelopment())

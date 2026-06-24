@@ -30,6 +30,10 @@ public sealed class ContentEndpoints : ICarterModule
             .WithName("ApproveContentIdea")
             .WithTags("Content");
 
+        grp.MapPatch("/ideas/{id:guid}/ready", ReadyIdea)
+            .WithName("ReadyContentIdea")
+            .WithTags("Content");
+
         grp.MapPatch("/ideas/{id:guid}/publish", PublishIdea)
             .WithName("PublishContentIdea")
             .WithTags("Content");
@@ -76,6 +80,15 @@ public sealed class ContentEndpoints : ICarterModule
         CancellationToken ct)
     {
         await mediator.Send(new ApproveIdeaCommand(id), ct);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ReadyIdea(
+        Guid id,
+        IMediator mediator,
+        CancellationToken ct)
+    {
+        await mediator.Send(new ReadyIdeaCommand(id), ct);
         return Results.NoContent();
     }
 

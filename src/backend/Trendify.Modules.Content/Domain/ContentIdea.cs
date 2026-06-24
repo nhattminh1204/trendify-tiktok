@@ -13,7 +13,7 @@ public sealed class ContentIdea : TenantEntity
     public Guid? TargetPersonaId { get; private set; }
     public Guid? TrendId { get; private set; }
 
-    // draft | approved | in_production | published | archived
+    // draft | approved | ready | in_production | published | archived
     public string Status { get; private set; } = "draft";
 
     public bool GeneratedByAI { get; private set; }
@@ -70,10 +70,18 @@ public sealed class ContentIdea : TenantEntity
         MarkUpdated();
     }
 
-    public void MarkInProduction()
+    public void MarkReady()
     {
         if (Status != "approved")
-            throw new InvalidOperationException("Only approved ideas can be moved to production.");
+            throw new InvalidOperationException("Only approved ideas can be marked ready.");
+        Status = "ready";
+        MarkUpdated();
+    }
+
+    public void MarkInProduction()
+    {
+        if (Status != "ready")
+            throw new InvalidOperationException("Only ready ideas can be moved to production.");
         Status = "in_production";
         MarkUpdated();
     }

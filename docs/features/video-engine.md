@@ -120,11 +120,21 @@ Template selection: auto-assigned based on `content_style` from Campaign. User c
 
 | Provider | Model | Use Case |
 |---|---|---|
-| OpenAI TTS | `tts-1` | Fast, low cost. Default for all renders. |
+| EdgeTTS | `vi-VN-HoaiMyNeural`, `vi-VN-NamMinhNeural` | Free Vietnamese TTS. Default. |
+| OmniVoice | 6 Vietnamese voices | Local Vietnamese TTS. Requires GPU for best perf. |
+| OpenAI TTS | `tts-1` | Fast, low cost. English-capable. |
 | OpenAI TTS | `tts-1-hd` | Higher quality. Pro/Agency tier only. |
 | ElevenLabs | Custom voice | Phase 2. Requires user's own API key. |
 
-Voice IDs available in Phase 1: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer` (OpenAI voices).
+Voice IDs available in Phase 1:
+
+| Provider | Voice IDs |
+|---|---|
+| EdgeTTS | `vi-VN-HoaiMyNeural`, `vi-VN-NamMinhNeural` |
+| OmniVoice | `ban_mai`, `lan_trinh`, `ngan_ha`, `ngoc_huyen`, `thao_trinh`, `tuong_vy` |
+| OpenAI | `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer` |
+
+> **OmniVoice VI voices** sourced from: https://huggingface.co/datasets/STBack23/omnivoice-vi. Place voice profiles in `src/workers/video-engine/voices/<slug>/`.
 
 ---
 
@@ -293,7 +303,32 @@ Architecture decision: see `docs/decisions/2026-06-22-video-pipeline-v2.md`
 
 ## Implementation Notes
 
+### Hybrid Architecture
+
+The Video Engine uses a **.NET orchestration + Python sidecar** architecture (see ADR `2026-06-24-video-engine-hybrid-architecture.md`):
+
+- **.NET**: Job management (Hangfire `VideoRenderWorker`), API endpoints (Carter), domain events (MediatR), persistence (EF Core)
+- **Python sidecar**: All media processing — TTS generation, video assembly (MoviePy 2.x), subtitle burn-in, final encoding
+
+Communication: .NET calls Python via `Process.Start` with JSON config on stdin. Python writes JSON result to stdout.
+
+### Python Sidecar Location
+
+```
+src/workers/video-engine/
+├── requirements.txt
+├── config.py
+├── render_worker.py           ← Entry point (called by .NET)
+├── tts_engine.py              ← OmniVoice + edge-tts + OpenAI
+├── video_processor.py         ← MoviePy assembly
+├── script_parser.py           ← Scene parsing + SRT building
+└── voices/                    ← OmniVoice VI profiles
+```
+
+### FFmpeg
+
 - FFmpeg must be installed on the worker host. Pin the version in `Dockerfile` — do not use the system package manager version.
+- MoviePy 2.x wraps FFmpeg internally — raw FFmpeg calls from .NET are eliminated.
 - TTS audio is generated as `.mp3` then converted to `.aac` by FFmpeg during render — do not store intermediate `.mp3`
 - Asset URLs passed to FFmpeg must be local file paths (downloaded first) — FFmpeg cannot read from MinIO URLs directly
 - The 5-minute hard kill is implemented via `CancellationTokenSource` with `TimeSpan.FromMinutes(5)` passed to the `Process` wrapper — not a Hangfire timeout

@@ -33,6 +33,7 @@
     <ProjectReference Include="..\Trendify.Modules.Learning\Trendify.Modules.Learning.csproj" />
     <ProjectReference Include="..\Trendify.Modules.Products\Trendify.Modules.Products.csproj" />
     <ProjectReference Include="..\Trendify.Modules.AIEngine\Trendify.Modules.AIEngine.csproj" />
+    <ProjectReference Include="..\Trendify.Modules.VideoEngine\Trendify.Modules.VideoEngine.csproj" />
   </ItemGroup>
 
 </Project>

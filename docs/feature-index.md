@@ -64,8 +64,8 @@ Status: `Planned` | `In Progress` | `Done` | `Deprecated`
 | Feature | Status | Sprint | Doc | ADR |
 |---|---|---|---|---|
 | Content production pipeline | Planned | — | `features/content.md` | — |
-| Voice/audio generation | Planned | — | `features/content.md` | — |
-| Subtitle generation | Planned | — | `features/content.md` | — |
+| Voice/audio generation (via Video Engine) | Done | — | `features/video-engine.md` | `2026-06-24-video-engine-hybrid-architecture.md` |
+| Subtitle generation (via Video Engine) | Done | — | `features/video-engine.md` | `2026-06-24-video-engine-hybrid-architecture.md` |
 | Media asset management | Planned | — | `features/content.md` | — |
 | Content scheduling (calendar page exists) | Partial (UI only) | — | `features/content.md` | — |
 | Batch content creation | Planned | — | `features/content.md` | — |
@@ -157,14 +157,21 @@ Status: `Planned` | `In Progress` | `Done` | `Deprecated`
 
 | Feature | Status | Sprint | Doc | ADR |
 |---|---|---|---|---|
-| TTS voice generation (OpenAI) | Planned | — | `features/video-engine.md` | — |
-| Subtitle generation & sync | Planned | — | `features/video-engine.md` | — |
-| FFmpeg scene composition | Planned | — | `features/video-engine.md` | — |
-| Visual template system (3 templates) | Planned | — | `features/video-engine.md` | — |
-| Render retry & timeout enforcement | Planned | — | `features/video-engine.md` | — |
-| Render job queue & concurrency limits | Planned | — | `features/video-engine.md` | — |
-| Auto-cancel on campaign pause/archive | Planned | — | `features/video-engine.md` | — |
-| render_type discriminator | Planned | — | `features/video-engine.md` | `2026-06-22-video-pipeline-v2.md` |
+| TTS voice generation (EdgeTTS + OmniVoice VI) | Done | — | `features/video-engine.md` | `2026-06-24-video-engine-hybrid-architecture.md` |
+| Subtitle generation & sync (SRT burn-in) | Done | — | `features/video-engine.md` | `2026-06-24-video-engine-hybrid-architecture.md` |
+| MoviePy video assembly (replaces raw FFmpeg) | Done | — | `features/video-engine.md` | `2026-06-24-video-engine-hybrid-architecture.md` |
+| Visual template system (3 templates) | Done | — | `features/video-engine.md` | — |
+| Render retry & timeout enforcement | Done | — | `features/video-engine.md` | — |
+| Render job queue & concurrency limits | Done | — | `features/video-engine.md` | — |
+| Auto-cancel on campaign pause/archive | Done | — | `features/video-engine.md` | — |
+| render_type discriminator | Done | — | `features/video-engine.md` | `2026-06-22-video-pipeline-v2.md` |
+| Python sidecar architecture | Done | — | `features/video-engine.md` | `2026-06-24-video-engine-hybrid-architecture.md` |
+| API endpoints (list, create, detail, cancel, templates) | Done | — | `features/video-engine.md` | — |
+| VideoRenderWorker (Hangfire job, auto-enqueue) | Done | — | `features/video-engine.md` | — |
+| ContentReadyEvent consumer (auto-create render jobs) | Done | — | `features/video-engine.md` | — |
+| Cross-module: Content → Video Engine via domain events | Done | — | `features/video-engine.md` | `2026-06-20-inter-module-communication.md` |
+| Stale job cleanup (hourly) | Done | — | `features/video-engine.md` | — |
+| Domain events (Created, Rendered, Failed, Cancelled) | Done | — | `features/video-engine.md` | — |
 
 ---
 
@@ -297,3 +304,7 @@ Status: `Planned` | `In Progress` | `Done` | `Deprecated`
 | Demo/stub data in audience sync demographics | Audience | No real TikTok audience data yet |
 | ProductSyncJob not implemented (Phase 2) | Products | Metrics population is manual only |
 | ThumbnailCacheJob not implemented | Products | Thumbnails stored as-origin URL |
+| OmniVoice VI voices not bundled (must be downloaded) | Video Engine | Vietnamese TTS falls back to edge-tts |
+| Python sidecar not installed in Docker image | Video Engine | Requires Python 3.10+ in production |
+| Campaign module not yet implemented | Campaign | No CampaignPausedEvent/CampaignArchivedEvent to wire auto-cancel |
+| `IJobScheduler` interface defined but no implementation | Shared | Cross-module job scheduling abstraction not wired |

@@ -47,4 +47,11 @@ public static class ErrorCodes
     public const string ProductAlreadyExists = "PRODUCT_ALREADY_EXISTS";
     public const string ProductAlreadyInWatchlist = "PRODUCT_ALREADY_IN_WATCHLIST";
     public const string ProductNotInWatchlist = "PRODUCT_NOT_IN_WATCHLIST";
+
+    // Video Engine
+    public const string RenderJobNotFound = "RENDER_JOB_NOT_FOUND";
+    public const string RenderJobNotQueued = "RENDER_JOB_NOT_QUEUED";
+    public const string RenderTimedOut = "RENDER_TIMED_OUT";
+    public const string RenderFailed = "RENDER_FAILED";
+    public const string PythonSidecarError = "PYTHON_SIDECAR_ERROR";
 }
